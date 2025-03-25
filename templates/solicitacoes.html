@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Solicitações Registradas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Chakra Petch', sans-serif;
+            background-color: #151515;
+            color: #fff;
+            padding: 30px;
+            margin: 0;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #333;
+            margin-right: 5px;
+            border-radius: 5px;
+        }
+        .tab.active {
+            background-color: #0066cc;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #0066cc;
+        }
+        img {
+            width: 200px;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        #chat-container {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 350px;
+            height: 400px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            color: #fff;
+        }
+        #chat-box {
+            height: 300px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #222;
+            border-radius: 8px;
+        }
+        #chat-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            box-sizing: border-box;
+            font-size: 14px;
+            margin-bottom: 10px;
+            background-color: #333;
+            color: #fff;
+        }
+        #chat-btn {
+            background: #00cc66;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        #chat-btn:hover {
+            background: #33cc99;
+        }
+
+        form input[type="text"], form textarea, form select, form input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+            margin-bottom: 10px;
+            background-color: #333;
+            color: #fff;
+        }
+        form button {
+            background-color: #0066cc;
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+        }
+        form button:hover {
+            background-color: #3399ff;
+        }
+    </style>
+</head>
+<body>
+    <h2>Solicitações Registradas</h2>
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('solicitacoes')">Solicitações</div>
+        <div class="tab" onclick="showTab('chat')">Chat</div>
+        <div class="tab" onclick="showTab('cadastro')">Cadastro</div>
+        <div class="tab" onclick="showTab('usuarios')">Usuários</div>
+    </div>
+
+    <div id="solicitacoes">
+        <table>
+            <tr>
+                <th>Setor</th>
+                <th>QRA</th>
+                <th>Solicitação</th>
+                <th>Prioridade</th>
+                <th>Status</th>
+                <th>Imagem do Problema</th>
+                <th>Data/Hora</th>
+                <th>Ação</th>
+            </tr>
+            {% for solicitacao in solicitacoes %}
+            <tr>
+                <td>{{ solicitacao.setor }}</td>
+                <td>{{ solicitacao.qra }}</td>
+                <td>{{ solicitacao.solicitacao }}</td>
+                <td>{{ solicitacao.prioridade }}</td>
+                <td>{{ solicitacao.status }}</td>
+                <td>
+                    {% if solicitacao.imagem %}
+                        <img src="{{ url_for('uploaded_file', nome_arquivo=solicitacao.imagem) }}" alt="Imagem da solicitação">
+                    {% else %}
+                        Sem imagem
+                    {% endif %}
+                </td>
+                <td>{{ solicitacao.datahora }}</td>
+                <td>
+                    <a href="{{ url_for('alterar_status', solicitacao_id=solicitacao.id) }}" style="color: #00cc66; cursor: pointer;">
+                        {{ solicitacao.status }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <!-- dentro do mesmo arquivo solicitacoes.html -->
+
+<div id="usuarios" style="display: none;">
+    <h3>Usuários Cadastrados</h3>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Usuário</th>
+            <th>Ação</th>
+        </tr>
+        {% for usuario in usuarios %}
+            <tr>
+                <td>{{ usuario.id }}</td>
+                <td>{{ usuario.usuario }}</td>
+                <td>
+                  {% if usuario.usuario != 'admin' %}
+                    <form style="display:inline;" method="POST" action="{{ url_for('excluir_usuario', id_usuario=usuario.id) }}" onsubmit="return confirm('Tem certeza que deseja excluir esse usuário?');">
+                        <button type="submit">Excluir</button>
+                    </form>
+                  {% else %}
+                      Adm não pode ser excluído
+                  {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">Nenhum usuário cadastrado.</td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+
+
+
+    <div id="chat">
+        <div id="chat-container">
+            <div id="chat-box"></div>
+            <textarea id="chat-input" placeholder="Digite sua mensagem..."></textarea>
+            <button id="chat-btn" onclick="enviarMensagem()">Enviar</button>
+        </div>
+    </div>
+
+
+    <div id="cadastro" style="display: none;">
+    <h3>Cadastro de Login</h3>
+    <form action="/cadastrar_login" method="post">
+        <label for="usuario">Usuário:</label>
+        <input type="text" id="usuario" name="usuario" required>
+
+        <label for="senha">Senha:</label>
+        <input type="password" id="senha" name="senha" required>
+
+        <label for="permissao">Permissão:</label>
+        <select id="permissao" name="permissao">
+            <option value="usuario">Usuário</option>
+            <option value="admin">Admin</option>
+        </select>
+
+        <button type="submit">Cadastrar</button>
+    </form>
+
+
+</div>
+
+    <script>
+    function showTab(tab) {
+        const tabs = ['solicitacoes', 'chat', 'cadastro', 'usuarios'];
+
+        tabs.forEach(t => {
+            const el = document.getElementById(t);
+            if (el) el.style.display = 'none';
+        });
+
+        document.getElementById('chat-container').style.display = (tab === 'chat') ? 'block' : 'none';
+
+        const elTab = document.getElementById(tab);
+        if (elTab) elTab.style.display = 'block';
+
+        const tabElements = document.querySelectorAll('.tab');
+        tabElements.forEach(el => el.classList.remove('active'));
+        const tabIndex = tabs.indexOf(tab);
+        if (tabIndex >= 0 && tabElements[tabIndex]) tabElements[tabIndex].classList.add('active');
+    }
+
+    // Funções para chat
+    async function carregarMensagens() {
+        try {
+            const response = await fetch('/chat');
+            const data = await response.json();
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML = data.messages.map(msg => `<div>${msg.sender}: ${msg.text}</div>`).join('');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } catch (e) {
+            console.error("Erro ao carregar mensagens:", e);
+        }
+    }
+
+    async function enviarMensagem() {
+        const text = document.getElementById('chat-input').value.trim();
+        if (!text) return;
+
+        const payload = {
+            text,
+            sender: '{{ session["usuario"] }}',
+            sender_type: '{{ session["permissao"] }}'
+        };
+
+        try {
+            const response = await fetch('/enviar_mensagem', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('chat-input').value = '';
+                await carregarMensagens();
+            } else {
+                alert("Erro ao enviar mensagem: " + result.message);
+            }
+        } catch (e) {
+            console.error("Erro ao enviar mensagem:", e);
+        }
+    }
+</script>
+
+</body>
+</html>

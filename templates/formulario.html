@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Solicitações ao STI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: url('https://i.imgur.com/HdTHHgm.jpeg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #ffffff;
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        form {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 25px;
+            border-radius: 15px;
+            width: 400px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: none;
+            height: 100px;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            cursor: pointer;
+            background: linear-gradient(90deg, #00aaff, #4ddcff);
+            border: none;
+            font-weight: 600;
+            border-radius: 8px;
+            color: white;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(90deg, #4ddcff, #00aaff);
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 5px #4ddcff;
+        }
+
+        /* Estilo do chat */
+        .chat-box {
+            width: 300px;
+            height: 300px;
+            background-color: rgba(0, 0, 0, 0.8);
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            margin-top: auto;
+        }
+
+        .chat-button {
+            width: 100%;
+            padding: 12px;
+            cursor: pointer;
+            background: linear-gradient(90deg, #00aaff, #4ddcff);
+            border: none;
+            font-weight: 600;
+            border-radius: 8px;
+            color: white;
+            transition: background 0.3s ease;
+        }
+
+        .chat-button:hover {
+            background: linear-gradient(90deg, #4ddcff, #00aaff);
+        }
+
+        /* Chat fixo no canto inferior direito */
+        .chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            z-index: 9999;
+        }
+
+        .chat-header {
+            background-color: #4ddcff;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            color: white;
+            font-weight: 600;
+        }
+
+        .chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4ddcff;
+            padding: 10px;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 10000;
+        }
+    </style>
+</head>
+<body>
+    <form action="/formulario" method="post" enctype="multipart/form-data">
+        <h2>Solicitações ao STI</h2>
+
+        <!-- Formulário de solicitação -->
+        <select name="setor" required>
+            <option value="" disabled selected>Selecione o Setor</option>
+            <option value="Suporte">Suporte</option>
+            <option value="Monitoramento">Monitoramento</option>
+            <option value="Rádio">Rádio</option>
+        </select>
+
+        <input type="text" name="qra" placeholder="Digite o QRA" required>
+
+        <textarea name="solicitacao" placeholder="Descreva a solicitação" required></textarea>
+
+        <select name="prioridade" required>
+            <option value="" disabled selected>Selecione a Prioridade</option>
+            <option value="Baixa">Baixa</option>
+            <option value="Média">Média</option>
+            <option value="Alta">Alta</option>
+        </select>
+
+        <select name="status" required>
+            <option value="Pendente" selected>Pendente</option>
+            <option value="Em andamento">Em andamento</option>
+            <option value="Concluído">Concluído</option>
+        </select>
+
+        <input type="file" name="imagem" accept="image/*">
+
+        <button type="submit">Enviar Solicitação</button>
+    </form>
+
+    <!-- Chat -->
+    <div class="chat-container" id="chat-container">
+        <div class="chat-header">Chat com o Admin</div>
+        <div class="chat-box" id="chat-box">
+            <!-- As mensagens serão carregadas aqui -->
+        </div>
+        <input type="text" id="chat-input" class="chat-input" placeholder="Digite sua mensagem..." />
+        <button type="button" class="chat-button" onclick="enviarMensagem()">Enviar Mensagem</button>
+    </div>
+
+    <!-- Botão para alternar a visibilidade do chat -->
+    <div class="chat-toggle" onclick="toggleChat()">💬</div>
+
+    <script>
+        function carregarMensagens() {
+            fetch('/chat')
+                .then(response => response.json())
+                .then(data => {
+                    const chatBox = document.getElementById('chat-box');
+                    chatBox.innerHTML = ''; // Limpar as mensagens existentes
+                    data.messages.forEach(msg => {
+                        const msgElement = document.createElement('div');
+                        msgElement.innerText = `${msg.sender}: ${msg.text}`;
+                        chatBox.appendChild(msgElement);
+                    });
+                });
+        }
+
+        function enviarMensagem() {
+            const input = document.getElementById('chat-input');
+            const mensagem = input.value;
+            if (mensagem.trim() === '') return;
+
+            fetch('/enviar_mensagem', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: mensagem })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    input.value = '';
+                    carregarMensagens(); // Atualiza as mensagens
+                }
+            });
+        }
+
+        function toggleChat() {
+            const chatContainer = document.getElementById('chat-container');
+            chatContainer.style.display = chatContainer.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Carregar mensagens ao carregar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarMensagens();
+        });
+    </script>
+
+</body>
+</html>
