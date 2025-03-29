@@ -94,11 +94,7 @@ def login():
 
     return render_template('login.html')
 
-# Logout
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
+
 
 # Página protegida - Formulário de solicitação
 @app.route("/formulario", methods=["GET", "POST"])
@@ -276,6 +272,15 @@ def excluir_usuario(id_usuario):
 
     flash('Usuário excluído com sucesso!')
     return redirect(url_for('solicitacoes'))
+
+from flask import Flask, redirect, url_for, session
+
+
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)  # Remover a chave 'logged_in' da sessão
+    return redirect(url_for('login'))  # Redireciona para a página de login após o logout
 
 
 

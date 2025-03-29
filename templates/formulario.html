@@ -140,9 +140,42 @@
             cursor: pointer;
             z-index: 10000;
         }
+
+        /* Estilo do botão de logout (Círculo, sombra e transição suave) */
+        .logout-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #ff4d4d;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 60px;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+
+
+        .logout-button:hover {
+            background-color: #ff1a1a;
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .logout-button:focus {
+            outline: none;
+        }
+
     </style>
 </head>
 <body>
+<a href="{{ url_for('logout') }}" class="logout-button">Sair</a>
+
     <form action="/formulario" method="post" enctype="multipart/form-data">
         <h2>Solicitações ao STI</h2>
 
