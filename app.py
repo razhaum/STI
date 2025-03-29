@@ -279,9 +279,9 @@ from flask import Flask, redirect, url_for, session
 
 @app.route('/logout')
 def logout():
-    session.pop('usuario', None)  # Remove o usuário da sessão
+    session.clear()  # Remove todos os dados da sessão
     flash("Você foi desconectado com sucesso.", "success")
-    return redirect(url_for('login'))  # Redireciona para a página de login
+    return redirect(url_for('login'))  # Redireciona para a página de log
 
 
 
