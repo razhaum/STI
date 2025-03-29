@@ -277,11 +277,15 @@ from flask import Flask, redirect, url_for, session
 
 
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 def logout():
-    session.pop('logged_in', None)  # Remover a chave 'logged_in' da sessão
-    return redirect(url_for('login'))  # Redireciona para a página de login após o logout
+    # Limpa a sessão, removendo o usuário e qualquer outro dado associado à sessão
+    session.pop('logged_in', None)
+    session.pop('usuario', None)
+    session.pop('permissao', None)
 
+    # Redireciona para a página de login
+    return redirect(url_for('login'))
 
 
 

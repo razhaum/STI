@@ -133,14 +133,9 @@
     <h2>Solicitações Registradas</h2>
 
 
-    </div>
-    {% if session.get('usuario') %}
-    <div style="text-align: right;">
-        <form action="{{ url_for('logout') }}" method="POST">
-            <button type="submit" class="logout-btn">Logout</button>
-        </form>
-    </div>
-{% endif %}
+    <form action="{{ url_for('logout') }}" method="POST">
+    <button type="submit" class="logout-btn">Logout</button>
+</form>
 
 
 
