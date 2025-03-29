@@ -1,3 +1,4 @@
 Flask
-Flask-SQLAlchemy
-pytz
+flask_sqlalchemy
+flask_migrate
+gunicorn
