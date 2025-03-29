@@ -112,10 +112,30 @@
         form button:hover {
             background-color: #3399ff;
         }
+        .logout-btn {
+            background-color: #ff6666;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .logout-btn:hover {
+            background-color: #ff4d4d;
+        }
     </style>
 </head>
 <body>
     <h2>Solicitações Registradas</h2>
+
+    <form action="{{ url_for('logout') }}" method="POST">
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
+
     <div class="tabs">
         <div class="tab active" onclick="showTab('solicitacoes')">Solicitações</div>
         <div class="tab" onclick="showTab('chat')">Chat</div>
