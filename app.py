@@ -129,11 +129,13 @@ def formulario():
             prioridade=request.form['prioridade'],
             status=request.form['status'],
             imagem=nome_arquivo,
+            datahora=datetime.now(pytz.timezone('America/Sao_Paulo')),  # Registra a data e hora atual no formato correto
+            horario_inicio=datetime.now(pytz.timezone('America/Sao_Paulo'))  # Horário de início, pode ser o mesmo
 
         )
         db.session.add(nova_solicitacao)
         db.session.commit()
-        return redirect(url_for("solicitacoes"))
+        return redirect(url_for("formulario"))
 
     return render_template("formulario.html")
 
