@@ -143,6 +143,15 @@
                 <td>{{ solicitacao.prioridade }}</td>
                 <td>{{ solicitacao.status }}</td>
                 <td>{{ solicitacao.datahora.strftime('%d/%m/%Y %H:%M:%S') }}</td> 
+                <td> {% if solicitacao.datahora %}
+    {{ solicitacao.datahora.strftime('%d/%m/%Y %H:%M:%S') }}
+  {% else %}
+    Não disponível
+  {% endif %} 
+                <td>
+
+
+                
                 <td>
                     {% if solicitacao.imagem %}
                         <img src="{{ url_for('uploaded_file', nome_arquivo=solicitacao.imagem) }}" alt="Imagem da solicitação">
