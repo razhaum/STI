@@ -1,11 +1,9 @@
 import logging
 from logging.config import fileConfig
-
 from flask import current_app
-
-
 from alembic import context
 from app import db, ChatMessage  # Substitua 'app' pelo nome correto do seu arquivo
+from sqlalchemy import text
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
