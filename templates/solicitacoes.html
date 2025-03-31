@@ -149,7 +149,7 @@
                         Sem imagem
                     {% endif %}
                 </td>
-                <td>{{ solicitacao.datahora }}</td>
+
                 <td>
                     <a href="{{ url_for('alterar_status', solicitacao_id=solicitacao.id) }}" style="color: #00cc66; cursor: pointer;">
                         {{ solicitacao.status }}
@@ -224,9 +224,6 @@
 
 </div>
 
-    <div style="text-align: right; margin-bottom: 20px;">
-    <a href="{{ url_for('logout') }}" style="background-color: #ff4d4d; color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">Sair</a>
-</div>
 
     <script>
     function showTab(tab) {

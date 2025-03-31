@@ -13,12 +13,10 @@ app = Flask(__name__)
 # Configurações básicas e sessão
 app.secret_key = os.urandom(24)  # Usando uma chave secreta gerada aleatoriamente
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydatabase.db'
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -38,9 +36,12 @@ class Solicitacao(db.Model):
     prioridade = db.Column(db.String(20))
     status = db.Column(db.String(20), default='Pendente')
     imagem = db.Column(db.String(200))
-    datahora = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone("America/Sao_Paulo")))
-    horario_inicio = db.Column(db.DateTime, nullable=True)
+    # Remover os campos datahora e horario_inicio
+    # datahora = db.Column(db.DateTime, nullable=True)
+    # horario_inicio = db.Column(db.DateTime)
 
+    def __repr__(self):
+        return f'<Solicitacao {self.id}>'
 
 
 
@@ -49,18 +50,17 @@ class Solicitacao(db.Model):
 with app.app_context():
     db.create_all()
 
-    # Verificar se o usuário 'raphael' já existe
     if not Usuario.query.filter_by(usuario='raphael').first():
-        senha_hash = generate_password_hash('123')  # Senha padrão
+        senha_hash = generate_password_hash('123')
         novo_usuario = Usuario(usuario='raphael', senha=senha_hash)
         db.session.add(novo_usuario)
         db.session.commit()
 
-    # Verificar se o usuário 'admin' já existe, caso contrário, criar
     if not Usuario.query.filter_by(usuario='admin').first():
-        senha_hash = generate_password_hash('admin123')  # Senha do admin
+        senha_hash = generate_password_hash('admin123')
         novo_usuario = Usuario(usuario='admin', senha=senha_hash)
         db.session.add(novo_usuario)
+
         db.session.commit()
 
 # Rota inicial para login
@@ -81,9 +81,8 @@ def login():
         if usuario_cadastrado and check_password_hash(usuario_cadastrado.senha, senha):
             session['logged_in'] = True
             session['usuario'] = usuario
+            session['permissao'] = 'admin' if usuario == 'admin' else 'user'
 
-            session['permissao'] = 'admin' if (
-            usuario == 'admin') else 'user'
 
             if usuario == 'admin':
                 return redirect(url_for('solicitacoes'))  # Redireciona para a página de solicitações
@@ -125,7 +124,7 @@ def formulario():
             prioridade=request.form['prioridade'],
             status=request.form['status'],
             imagem=nome_arquivo,
-            datahora=datetime.now(pytz.timezone("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M:%S")
+
         )
         db.session.add(nova_solicitacao)
         db.session.commit()
@@ -135,13 +134,14 @@ def formulario():
 
 # Página protegida - Listagem de solicitações
 
-@app.route("/solicitacoes")
+
+@app.route('/solicitacoes', methods=['GET', 'POST'])
 def solicitacoes():
-    if not session.get('logged_in') or session.get('usuario') != 'admin':
-        return redirect(url_for('login'))  # Se não for admin, redireciona para o login
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
 
     lista = Solicitacao.query.order_by(Solicitacao.id.desc()).all()
-    usuarios_cadastrados = Usuario.query.all()  # enviar usuários para a view
+    usuarios_cadastrados = Usuario.query.all()
     return render_template("solicitacoes.html", solicitacoes=lista, usuarios=usuarios_cadastrados)
 
 
@@ -200,7 +200,7 @@ def chat():
 class ChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String(500), nullable=False)
-    sender = db.Column(db.String(100), nullable=False)  # Nome do remetente
+    sender = db.Column(db.String(100), nullable=False)
     sender_type = db.Column(db.String(50), nullable=False)  # 'user' ou 'admin'
     recipient = db.Column(db.String(100), nullable=True)  # Nome do destinatário
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
@@ -241,7 +241,7 @@ def enviar_mensagem():
 def cadastrar_login():
     usuario = request.form['usuario']
     senha = request.form['senha']
-    permissao = request.form['permissao']
+    permissao = request.form['permissao']  # 'admin' ou 'user'
 
     # Verifique se já existe o usuário no banco
     usuario_existente = Usuario.query.filter_by(usuario=usuario).first()
@@ -251,8 +251,9 @@ def cadastrar_login():
 
     senha_hash = generate_password_hash(senha)
 
-    novo_usuario = Usuario(usuario=usuario, senha=senha_hash)
-    # Adicione lógica aqui se desejar salvar a permissão no banco (criar coluna permissao em Usuario)
+    # Criação do novo usuário com a permissão
+    novo_usuario = Usuario(usuario=usuario, senha=senha_hash, permissao=permissao)
+
     db.session.add(novo_usuario)
     db.session.commit()
 
@@ -267,7 +268,6 @@ def enviar_solicitacao():
     qra = request.form['qra']
     solicitacao = request.form['solicitacao']
     prioridade = request.form['prioridade']
-
     imagem = request.files.get('imagem')  # Aqui é onde o arquivo de imagem é recebido
 
     if imagem and allowed_file(imagem.filename):  # Verifica se o arquivo é válido
@@ -276,14 +276,15 @@ def enviar_solicitacao():
     else:
         imagem_filename = None  # Caso não haja imagem ou o arquivo seja inválido
 
-    # Criação da nova solicitação
+    # Criação da nova solicitação sem 'datahora' e 'horario_inicio'
     nova_solicitacao = Solicitacao(
         setor=setor,
         qra=qra,
         solicitacao=solicitacao,
         prioridade=prioridade,
+        status="Pendente",  # Definindo o status como Pendente ou outro valor desejado
         imagem=imagem_filename,  # Salva o nome do arquivo ou None
-        datahora=datetime.now(pytz.timezone("America/Sao_Paulo"))
+        # Remova os campos 'datahora' e 'horario_inicio' da inserção
     )
 
     # Adiciona a solicitação ao banco de dados
@@ -296,6 +297,7 @@ def enviar_solicitacao():
         flash(f'Ocorreu um erro ao salvar a solicitação: {e}', 'error')
 
     return redirect(url_for('listar_solicitacoes'))
+
 
 @app.route('/excluir_usuario/<int:id_usuario>', methods=['POST'])
 def excluir_usuario(id_usuario):
