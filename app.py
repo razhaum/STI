@@ -6,13 +6,15 @@ from datetime import datetime
 import pytz
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from alembic import op
+import sqlalchemy as sa
 
 app = Flask(__name__)
 
 
 # Configurações básicas e sessão
-app.secret_key = os.urandom(24)  # Usando uma chave secreta gerada aleatoriamente
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', os.urandom(24))
+# Usando uma chave secreta gerada aleatoriamente
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -40,8 +42,6 @@ class Solicitacao(db.Model):
     imagem = db.Column(db.String(200))
     datahora = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone("America/Sao_Paulo")))
     horario_inicio = db.Column(db.DateTime, nullable=True)
-
-
 
 
 
@@ -129,6 +129,14 @@ def formulario():
 
     return render_template("formulario.html")
 
+def upgrade():
+    # Adiciona a coluna 'sender_type' diretamente sem criar dependência circular
+    op.add_column('chat_message', sa.Column('sender_type', sa.String(50), nullable=False))
+
+def downgrade():
+    # Reverte a adição da coluna 'sender_type'
+    op.drop_column('chat_message', 'sender_type')
+
 # Página protegida - Listagem de solicitações
 
 @app.route("/solicitacoes")
@@ -209,29 +217,34 @@ class ChatMessage(db.Model):
 def uploaded_file(nome_arquivo):
     return send_from_directory(app.config['UPLOAD_FOLDER'], nome_arquivo)
 
+
 # Rota para enviar uma nova mensagem
 @app.route('/enviar_mensagem', methods=['POST'])
 def enviar_mensagem():
-    data = request.get_json()
-    text = data.get('text')
-    sender = data.get('sender')  # Pode ser 'klisman' ou outro usuário
-    sender_type = data.get('sender_type')  # 'user' ou 'admin'
-    recipient = data.get('recipient')  # Apenas se for resposta de admin
+    try:
+        # Captura os dados enviados no corpo da requisição
+        data = request.get_json()
+        text = data.get('text')
+        sender = data.get('sender')
+        sender_type = data.get('sender_type')
 
-    if not text or not sender or not sender_type:
-        return jsonify({"success": False, "message": "Faltam dados obrigatórios!"}), 400
+        # Validação
+        if not text or not sender or not sender_type:
+            return jsonify({"success": False, "message": "Campos faltando."}), 400
 
-    # Salvar a mensagem no banco de dados
-    nova_mensagem = ChatMessage(
-        text=text,
-        sender=sender,
-        sender_type=sender_type,
-        recipient=recipient if sender_type == 'admin' else None  # Apenas admins podem ter destinatário
-    )
-    db.session.add(nova_mensagem)
-    db.session.commit()
 
-    return jsonify({"success": True}), 200
+
+        # Salvar a mensagem no banco de dados
+        new_message = ChatMessage(text=text, sender=sender, sender_type=sender_type)
+        db.session.add(new_message)
+        db.session.commit()
+        db.session.flush()
+
+        return jsonify({"success": True, "message": "Mensagem enviada com sucesso."})
+    except Exception as e:
+        print(f"Erro ao enviar mensagem: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
 
 @app.route('/cadastrar_login', methods=['POST'])
 def cadastrar_login():
@@ -272,9 +285,6 @@ def excluir_usuario(id_usuario):
 
     flash('Usuário excluído com sucesso!')
     return redirect(url_for('solicitacoes'))
-
-from flask import Flask, redirect, url_for, session
-
 
 
 @app.route('/logout')

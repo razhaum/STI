@@ -1,0 +1,101 @@
+[33mcommit 11119893dcbecf04324fefa7212fd65a6608a71e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 17:46:40 2025 -0300
+
+    Mensagem do commit explicando as mudanças
+
+[33mcommit dccc7139050093441f0a76a6a9528042833ceb0c[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 17:36:22 2025 -0300
+
+    Mensagem de commit
+
+[33mcommit b439f09f2aeb1be1c84aaf1befdae44d2a5690bc[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 15:56:48 2025 -0300
+
+    Primeiro commit - Adicionando a aplicação Flask
+
+[33mcommit 15ac59836a05c55ef968e018198378f69fd840a5[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 15:44:07 2025 -0300
+
+    Atualizações no layout e funcionalidades do projeto
+
+[33mcommit be8b13a30751f81180a6603b4c3c1cd93774c6ad[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 15:33:17 2025 -0300
+
+    Mensagem do commit
+
+[33mcommit b85acb418ed037db4b37ccb2e691cb5aff2f1fdc[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 15:27:24 2025 -0300
+
+    Mensagem do commit
+
+[33mcommit 41e5d41225f11530963992ac0b82f19d1aeb22ef[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 13:56:15 2025 -0300
+
+    fix: atualizados arquivos e adicionado requirements.txt
+
+[33mcommit 3fd292f30d32bb848879b68e22830e68ffe098e3[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 13:37:53 2025 -0300
+
+    Corrigindo requisitos, atualizando .gitignore e código principal
+
+[33mcommit c14b820dc8e7e0ca1e561ef1fb9b9b4bc0322b39[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 13:35:31 2025 -0300
+
+    Corrigindo erro de falta do Gunicorn nas dependências
+
+[33mcommit 5279613f9c566e8d1340da177e50b50b8dbd11eb[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 13:30:55 2025 -0300
+
+    Triggerando novo deploy limpo no Render
+
+[33mcommit c5bd1cff811c1d6dbe4cf4cbbc13f2be9a034bce[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 11:53:46 2025 -0300
+
+    Corrigindo instalação via requirements.txt com Gunicorn
+
+[33mcommit a64b2a480ab6bb6096763710c625c5b86e601319[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 11:52:35 2025 -0300
+
+    Corrigindo instalação via requirements.txt com Gunicorn
+
+[33mcommit 75cdf6294aa18662492a093ccc0e65bb46a5bb83[m[33m ([m[1;31morigin/master[m[33m)[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 11:46:57 2025 -0300
+
+    atualizando projeto Flask
+
+[33mcommit 46563d2c64d5c8b5c0ea320b8908482d97f62f34[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 09:32:58 2025 -0300
+
+    Corrigir Deploy Render
+
+[33mcommit 04356a808344b6dd1d13b05a25a1d191458bd79a[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 09:32:18 2025 -0300
+
+    Corrigir Deploy Render
+
+[33mcommit a7c439520df43039399148386fdbf73a11877967[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Sat Mar 29 09:23:03 2025 -0300
+
+    Descrição clara e curta das ações realizadas
+
+[33mcommit 643a7612c0926c02bcf6b6068c0fd79eb00015bb[m
+Author: Administrador <raphael.mose@gmail.com>
+Date:   Tue Mar 25 18:31:20 2025 -0300
+
+    Primeiro commit

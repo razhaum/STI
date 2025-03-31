@@ -3,7 +3,9 @@ from logging.config import fileConfig
 
 from flask import current_app
 
+
 from alembic import context
+from app import db, ChatMessage  # Substitua 'app' pelo nome correto do seu arquivo
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -49,6 +51,7 @@ def get_metadata():
     if hasattr(target_db, 'metadatas'):
         return target_db.metadatas[None]
     return target_db.metadata
+target_metadata = db.metadata
 
 
 def run_migrations_offline():
