@@ -136,22 +136,18 @@
 
 
 
- <!-- Botão de logout -->
-        <a href="{{ url_for('logout') }}">
-            <button style="padding: 10px 20px; background-color: #f44336; color: white; border: none; border-radius: 5px;">
-                Sair
-            </button>
-        </a>
-
-    {% if 'usuario' in session %}
-    <!-- Exibir o botão de logout se o usuário estiver logado -->
+ {% if 'usuario' in session or 'admin' in session %}
+    <!-- Exibir o botão de logout se qualquer tipo de usuário estiver logado -->
     <a href="{{ url_for('logout') }}">
-        <button>Sair</button>
+        <button style="padding: 10px 20px; background-color: #f44336; color: white; border: none; border-radius: 5px;">
+            Sair
+        </button>
     </a>
 {% else %}
-    <!-- Caso o usuário não esteja logado, você pode redirecioná-lo ou mostrar um link de login -->
+    <!-- Caso o usuário não esteja logado, exibe link de login -->
     <a href="{{ url_for('login') }}">Entrar</a>
 {% endif %}
+
 
 
     <div class="tabs">
