@@ -11,6 +11,9 @@ import sqlalchemy as sa
 
 app = Flask(__name__)
 
+if __name__ == "__main__":
+    app.run(debug=True)
+
 
 # Configurações básicas e sessão
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', os.urandom(24))
