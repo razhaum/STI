@@ -72,6 +72,23 @@
             outline: none;
             box-shadow: 0 0 5px #4ddcff;
         }
+       ..logout-link {
+    position: fixed; /* Fixa o link na tela */
+    top: 20px; /* Distância do topo */
+    right: 20px; /* Distância da direita */
+    background-color: #ff4d4d; /* Cor de fundo vermelha */
+    color: white; /* Cor do texto (branco) */
+    padding: 10px 20px; /* Espaçamento interno do link */
+    border-radius: 8px; /* Bordas arredondadas */
+    text-decoration: none; /* Remove o sublinhado do link */
+    font-weight: bold; /* Deixar o texto em negrito */
+    transition: background-color 0.3s ease; /* Efeito de transição ao passar o mouse */
+    z-index: 9999; /* Garante que o link ficará acima de outros elementos */
+}
+
+.logout-link:hover {
+    background-color: #ff1a1a; /* Cor de fundo ao passar o mouse (vermelho mais escuro) */
+}
 
         /* Estilo do chat */
         .chat-box {
@@ -176,6 +193,7 @@
         <button type="submit">Enviar Solicitação</button>
     </form>
 
+<button class="logout-button" onclick="logout()">Sair</button>
     <!-- Chat -->
     <div class="chat-container" id="chat-container">
         <div class="chat-header">Chat com o Admin</div>
@@ -190,6 +208,12 @@
     <div class="chat-toggle" onclick="toggleChat()">💬</div>
 
     <script>
+
+        function logout() {
+    // Redirecionar para a página de logout (ajuste conforme necessário)
+    window.location.href = '/logout';  // A URL de logout pode ser ajustada conforme sua aplicação
+}
+
         function carregarMensagens() {
             fetch('/chat')
                 .then(response => response.json())
