@@ -124,51 +124,47 @@
     </div>
 
     <div id="solicitacoes">
-        <table>
-            <tr>
-                <th>Setor</th>
-                <th>QRA</th>
-                <th>Solicitação</th>
-                <th>Prioridade</th>
-                <th>Status</th>
-                <th>Imagem do Problema</th>
-                <th>Data/Hora</th>
-                <th>Ação</th>
-            </tr>
-            {% for solicitacao in solicitacoes %}
-            <tr>
-                <td>{{ solicitacao.setor }}</td>
-                <td>{{ solicitacao.qra }}</td>
-                <td>{{ solicitacao.solicitacao }}</td>
-                <td>{{ solicitacao.prioridade }}</td>
-                <td>{{ solicitacao.status }}</td>
-                <td>{{ solicitacao.datahora.strftime('%d/%m/%Y %H:%M:%S') }}</td> 
-                <td> {% if solicitacao.datahora %}
-    {{ solicitacao.datahora.strftime('%d/%m/%Y %H:%M:%S') }}
-  {% else %}
-    Não disponível
-  {% endif %} 
-                <td>
+    <table>
+        <tr>
+            <th>Setor</th>
+            <th>QRA</th>
+            <th>Solicitação</th>
+            <th>Prioridade</th>
+            <th>Status</th>
+            <th>Imagem do Problema</th>
+            <th>Data/Hora</th>
+            <th>Ação</th>
+        </tr>
+        {% for solicitacao in solicitacoes %}
+        <tr>
+            <td>{{ solicitacao.setor }}</td>
+            <td>{{ solicitacao.qra }}</td>
+            <td>{{ solicitacao.solicitacao }}</td>
+            <td>{{ solicitacao.prioridade }}</td>
+            <td>{{ solicitacao.status }}</td>
+            <td>
+                {% if solicitacao.imagem %}
+                    <img src="{{ url_for('uploaded_file', nome_arquivo=solicitacao.imagem) }}" alt="Imagem" width="100" />
+                {% else %}
+                    Nenhuma imagem
+                {% endif %}
+            </td>
+            <td>
+                {% if solicitacao.datahora %}
+                    {{ solicitacao.datahora.strftime('%d/%m/%Y %H:%M:%S') }}
+                {% else %}
+                    Não disponível
+                {% endif %}
+            </td>
+            <td>
+                <!-- Ação para editar, excluir ou alterar o status, se necessário -->
+                <a href="{{ url_for('alterar_status', solicitacao_id=solicitacao.id) }}">Alterar Status</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
 
-
-                
-                <td>
-                    {% if solicitacao.imagem %}
-                        <img src="{{ url_for('uploaded_file', nome_arquivo=solicitacao.imagem) }}" alt="Imagem da solicitação">
-                    {% else %}
-                        Sem imagem
-                    {% endif %}
-                </td>
-
-                <td>
-                    <a href="{{ url_for('alterar_status', solicitacao_id=solicitacao.id) }}" style="color: #00cc66; cursor: pointer;">
-                        {{ solicitacao.status }}
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
     <!-- dentro do mesmo arquivo solicitacoes.html -->
 
 <div id="usuarios" style="display: none;">
