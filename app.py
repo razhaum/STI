@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 # Configurações básicas e sessão
 app.secret_key = os.urandom(24)  # Usando uma chave secreta gerada aleatoriamente
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydatabase.db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
@@ -258,6 +258,44 @@ def cadastrar_login():
 
     flash('Usuário cadastrado com sucesso!')
     return redirect(url_for('solicitacoes'))
+
+
+@app.route('/enviar_solicitacao', methods=['POST'])
+def enviar_solicitacao():
+    # Recebe os dados do formulário
+    setor = request.form['setor']
+    qra = request.form['qra']
+    solicitacao = request.form['solicitacao']
+    prioridade = request.form['prioridade']
+
+    imagem = request.files.get('imagem')  # Aqui é onde o arquivo de imagem é recebido
+
+    if imagem and allowed_file(imagem.filename):  # Verifica se o arquivo é válido
+        imagem_filename = secure_filename(imagem.filename)  # Garante que o nome do arquivo é seguro
+        imagem.save(os.path.join(app.config['UPLOAD_FOLDER'], imagem_filename))  # Salva o arquivo no diretório correto
+    else:
+        imagem_filename = None  # Caso não haja imagem ou o arquivo seja inválido
+
+    # Criação da nova solicitação
+    nova_solicitacao = Solicitacao(
+        setor=setor,
+        qra=qra,
+        solicitacao=solicitacao,
+        prioridade=prioridade,
+        imagem=imagem_filename,  # Salva o nome do arquivo ou None
+        datahora=datetime.now(pytz.timezone("America/Sao_Paulo"))
+    )
+
+    # Adiciona a solicitação ao banco de dados
+    try:
+        db.session.add(nova_solicitacao)
+        db.session.commit()
+        flash('Solicitação enviada com sucesso!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ocorreu um erro ao salvar a solicitação: {e}', 'error')
+
+    return redirect(url_for('listar_solicitacoes'))
 
 @app.route('/excluir_usuario/<int:id_usuario>', methods=['POST'])
 def excluir_usuario(id_usuario):
