@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 # Configurações básicas e sessão
 app.secret_key = os.urandom(24)  # Usando uma chave secreta gerada aleatoriamente
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydatabase.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydaabase.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -36,9 +36,9 @@ class Solicitacao(db.Model):
     prioridade = db.Column(db.String(20))
     status = db.Column(db.String(20), default='Pendente')
     imagem = db.Column(db.String(200))
-    # Remover os campos datahora e horario_inicio
-    # datahora = db.Column(db.DateTime, nullable=True)
-    # horario_inicio = db.Column(db.DateTime)
+    # Remover datahora, se não for mais necessário
+    datahora = db.Column(db.DateTime, nullable=True)  # Nullable permite que o campo seja vazio
+    horario_inicio = db.Column(db.DateTime)
 
     def __repr__(self):
         return f'<Solicitacao {self.id}>'
@@ -66,32 +66,37 @@ with app.app_context():
 # Rota inicial para login
 @app.route("/", methods=['GET', 'POST'])
 def login():
+    # Verifica se o usuário já está logado
     if session.get('logged_in'):
-        if session.get('usuario') == 'admin':  # Se for admin, redireciona para solicitações
-            return redirect(url_for('solicitacoes'))
-        return redirect(url_for('formulario'))  # Se for usuário comum, vai para o formulário
+        if session['permissao'] == 'admin':
+            return redirect(url_for('solicitacoes'))  # Admin vai para solicitações
+        return redirect(url_for('formulario'))  # Outros usuários vão para o formulário
 
+    # Se o método for POST, faz o login
     if request.method == 'POST':
         usuario = request.form['usuario']
         senha = request.form['senha']
 
-        # Verificar se o usuário existe
+        # Verificar se o usuário existe no banco de dados
         usuario_cadastrado = Usuario.query.filter_by(usuario=usuario).first()
 
         if usuario_cadastrado and check_password_hash(usuario_cadastrado.senha, senha):
+            # Usuário logado com sucesso
             session['logged_in'] = True
             session['usuario'] = usuario
             session['permissao'] = 'admin' if usuario == 'admin' else 'user'
+            flash(f'Bem-vindo, {session["usuario"]}!', 'success')
 
-
+            # Redireciona de acordo com a permissão do usuário
             if usuario == 'admin':
-                return redirect(url_for('solicitacoes'))  # Redireciona para a página de solicitações
+                return redirect(url_for('solicitacoes'))  # Admin vai para solicitações
             return redirect(url_for('formulario'))  # Para outros usuários, vai para o formulário
 
         flash('Usuário ou senha incorretos!')
         return redirect(url_for('login'))
 
     return render_template('login.html')
+
 
 # Logout
 @app.route('/logout')
