@@ -278,7 +278,5 @@ def excluir_usuario(id_usuario):
     return redirect(url_for('solicitacoes'))
 
 
-
-
 if __name__ == "__main__":
     app.run(debug=True)
