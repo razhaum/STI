@@ -193,7 +193,6 @@
         <button type="submit">Enviar Solicitação</button>
     </form>
 
-<button class="logout-button" onclick="logout()">Sair</button>
     <!-- Chat -->
     <div class="chat-container" id="chat-container">
         <div class="chat-header">Chat com o Admin</div>
@@ -203,6 +202,15 @@
         <input type="text" id="chat-input" class="chat-input" placeholder="Digite sua mensagem..." />
         <button type="button" class="chat-button" onclick="enviarMensagem()">Enviar Mensagem</button>
     </div>
+
+    </div>
+
+{% if session.get('logged_in') %}
+    <p>Você já está logado como {{ session['usuario'] }}.</p>
+    <a href="{{ url_for('logout') }}" class="btn btn-warning">Sair e mudar de usuário</a>
+{% else %}
+    <a href="{{ url_for('logout') }}" class="btn btn-danger">Sair</a>
+{% endif %}
 
     <!-- Botão para alternar a visibilidade do chat -->
     <div class="chat-toggle" onclick="toggleChat()">💬</div>

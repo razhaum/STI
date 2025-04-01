@@ -227,6 +227,14 @@
         <button type="submit">Cadastrar</button>
     </form>
 
+   </div>
+
+{% if session.get('logged_in') %}
+    <p>Você já está logado como {{ session['usuario'] }}.</p>
+    <a href="{{ url_for('logout') }}" class="btn btn-warning">Sair e mudar de usuário</a>
+{% else %}
+    <a href="{{ url_for('logout') }}" class="btn btn-danger">Sair</a>
+{% endif %}
 
 </div>
 
