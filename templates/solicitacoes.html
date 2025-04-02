@@ -165,6 +165,7 @@
     </table>
 </div>
 
+
     <!-- dentro do mesmo arquivo solicitacoes.html -->
 
 <div id="usuarios" style="display: none;">
@@ -197,47 +198,397 @@
     </table>
 </div>
 
+<style>
+    /* Estilo do chat */
+    #chat {
+        position: fixed;
+        bottom: 100px; /* Ajuste da posição */
+        right: 20px; /* Ajuste da posição */
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
 
+    #chat-container {
+        background: linear-gradient(135deg, #1e3c72, #2a5298); /* Estilo degradê */
+        border-radius: 10px;
+        width: 300px; /* Largura ajustada */
+        padding: 10px;
+        display: none; /* Inicialmente oculto */
+        flex-direction: column;
+        gap: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        box-sizing: border-box;
+        transform: scale(0.8);
+        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        opacity: 0;
+    }
 
+    #chat-container.active {
+        display: flex;
+        opacity: 1;
+        transform: scale(1);
+    }
 
-    <div id="chat">
-        <div id="chat-container">
-            <div id="chat-box"></div>
-            <textarea id="chat-input" placeholder="Digite sua mensagem..."></textarea>
-            <button id="chat-btn" onclick="enviarMensagem()">Enviar</button>
+    #chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    #chat-title {
+        text-transform: uppercase;
+    }
+
+    #close-chat {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    #close-chat:hover {
+        transform: scale(1.2);
+    }
+
+    /* Estilo da caixa de mensagens */
+    #chat-box {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        padding: 8px;
+        border-radius: 8px;
+        height: 200px;
+        overflow-y: auto;
+        font-family: 'Arial', sans-serif;
+        font-size: 12px;
+        line-height: 1.5;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        border: 1px solid #00e5ff;
+    }
+
+    /* Estilo do campo de entrada de mensagens */
+    #chat-input {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        padding: 8px;
+        font-size: 12px;
+        border: 2px solid #00e5ff;
+        border-radius: 6px;
+        resize: none;
+        width: 100%;
+        transition: all 0.3s ease-in-out;
+        outline: none;
+        box-sizing: border-box;
+    }
+
+    #chat-input:focus {
+        border-color: #00e5ff;
+        box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+    }
+
+    /* Estilo do botão de enviar */
+    #chat-btn {
+        background-color: #00e5ff;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    #chat-btn:hover {
+        background-color: #00bcd4;
+        box-shadow: 0 10px 20px rgba(0, 188, 212, 0.5);
+        transform: translateY(-2px);
+    }
+
+    #chat-btn:active {
+        transform: translateY(2px);
+    }
+
+    /* Botão de abrir o chat */
+    #open-chat {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        width: 80px; /* Tamanho do botão com imagem */
+        height: 80px;
+        border-radius: 50%;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    #open-chat img {
+        width: 100%; /* Imagem ocupa todo o botão */
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover; /* Garante que a imagem se encaixa bem */
+        transition: transform 0.3s ease;
+    }
+
+    #open-chat:hover img {
+        transform: scale(1.1); /* Efeito de zoom ao passar o mouse */
+    }
+
+    /* Responsividade */
+    @media (max-width: 480px) {
+        #chat-container {
+            width: 90%; /* Ocupa 90% da largura em dispositivos móveis */
+        }
+    }
+</style>
+
+<div id="chat">
+    <!-- Botão para abrir o chat com imagem -->
+    <button id="open-chat" onclick="abrirChat()">
+        <img src="https://freeimage.host/i/3RhMKbf" alt="Abrir Chat">
+    </button>
+
+    <!-- Container do chat -->
+    <div id="chat-container">
+        <div id="chat-header">
+            <span id="chat-title">Chat</span>
+            <button id="close-chat" onclick="fecharChat()">✖</button>
         </div>
+        <!-- Caixa para mensagens -->
+        <div id="chat-box"></div>
+        <!-- Entrada de mensagens -->
+        <textarea id="chat-input" placeholder="Digite sua mensagem..."></textarea>
+        <button id="chat-btn" onclick="enviarMensagem()">Enviar</button>
+    </div>
+</div>
+
+<script>
+    // Função para enviar mensagem
+    function enviarMensagem() {
+        const input = document.getElementById("chat-input");
+        const message = input.value.trim();
+
+        if (message) {
+            const chatBox = document.getElementById("chat-box");
+
+            // Criando o elemento de mensagem
+            const newMessage = document.createElement("div");
+            newMessage.textContent = message;
+            newMessage.style.marginBottom = "8px"; // Espaçamento entre mensagens
+            newMessage.style.padding = "6px 8px";
+            newMessage.style.backgroundColor = "#1e3c72";
+            newMessage.style.color = "white";
+            newMessage.style.borderRadius = "6px";
+
+            chatBox.appendChild(newMessage);
+
+            // Limpando o campo de entrada
+            input.value = "";
+
+            // Rolando para a parte inferior da caixa de mensagens
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
+
+    // Função para abrir o chat
+    function abrirChat() {
+        const chatContainer = document.getElementById('chat-container');
+        chatContainer.classList.add('active');
+    }
+
+    // Função para fechar o chat
+    function fecharChat() {
+        const chatContainer = document.getElementById('chat-container');
+        chatContainer.classList.remove('active');
+    }
+</script>
+
+
+
+
+
+
     </div>
 
 
     <div id="cadastro" style="display: none;">
     <h3>Cadastro de Login</h3>
-    <form action="/cadastrar_login" method="post">
+    <form action="{{ url_for('cadastrar_login') }}" method="post" class="form-cadastro">
         <label for="usuario">Usuário:</label>
-        <input type="text" id="usuario" name="usuario" required>
+        <div class="input-container">
+            <input type="text" id="usuario" name="usuario" required class="input-field">
+            <i class="fas fa-user"></i>
+        </div>
 
         <label for="senha">Senha:</label>
-        <input type="password" id="senha" name="senha" required>
+        <div class="input-container">
+            <input type="password" id="senha" name="senha" required class="input-field">
+            <i class="fas fa-lock"></i>
+        </div>
 
         <label for="permissao">Permissão:</label>
-        <select id="permissao" name="permissao">
-            <option value="usuario">Usuário</option>
-            <option value="admin">Admin</option>
-        </select>
+        <div class="input-container">
+            <select id="permissao" name="permissao" class="input-field">
+                <option value="usuario">Usuário</option>
+                <option value="admin">Admin</option>
+            </select>
+            <i class="fas fa-cogs"></i>
+        </div>
 
-        <button type="submit">Cadastrar</button>
+        <button type="submit" class="submit-btn">Cadastrar</button>
     </form>
-
-   </div>
-
-{% if session.get('logged_in') %}
-    <p>Você já está logado como {{ session['usuario'] }}.</p>
-    <a href="{{ url_for('logout') }}" class="btn btn-warning">Sair e mudar de usuário</a>
-{% else %}
-    <a href="{{ url_for('logout') }}" class="btn btn-danger">Sair</a>
-{% endif %}
-
 </div>
 
+<!-- CSS com design avançado -->
+<style>
+    /* Estilo geral do formulário */
+    #cadastro {
+        background: linear-gradient(135deg, #1d2b36, #5b7385); /* Gradiente suave */
+        border-radius: 15px;
+        padding: 40px;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        font-family: 'Arial', sans-serif;
+        color: #fff;
+        position: relative;
+        overflow: hidden; /* Para esconder os efeitos de transição fora da caixa */
+    }
+
+    h3 {
+        text-align: center;
+        font-size: 2.4rem;
+        margin-bottom: 20px;
+        color: #00e5ff;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+    }
+
+    /* Formatação do formulário */
+    .form-cadastro {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    /* Estilo das labels */
+    label {
+        font-size: 16px;
+        font-weight: 600;
+        color: #00e5ff;
+        margin-bottom: 5px;
+    }
+
+    /* Estilo dos campos de entrada */
+    .input-container {
+        position: relative;
+    }
+
+    .input-field {
+        padding: 16px 20px;
+        font-size: 16px;
+        border: 2px solid #00e5ff;
+        border-radius: 12px;
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        transition: all 0.4s ease-in-out; /* Transição mais fluida */
+        outline: none;
+        box-sizing: border-box;
+    }
+
+    .input-field:focus {
+        border-color: #00e5ff;
+        box-shadow: 0 0 8px rgba(0, 229, 255, 0.8); /* Brilho suave */
+        transform: scale(1.05); /* Efeito de aumentar o campo ao focar */
+    }
+
+    /* Efeito no foco do input */
+    .input-field::placeholder {
+        color: #b0b0b0;
+        opacity: 0.8;
+    }
+
+    .input-container i {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #00e5ff;
+        font-size: 18px;
+        transition: transform 0.3s ease;
+    }
+
+    .input-field:focus + i {
+        transform: scale(1.2); /* Ícone cresce ao focar no campo */
+    }
+
+    /* Efeito no botão */
+    .submit-btn {
+        padding: 16px 35px;
+        background-color: #00e5ff;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 6px 15px rgba(0, 229, 255, 0.4); /* Sombra suave */
+    }
+
+    .submit-btn:hover {
+        background-color: #00bcd4;
+        transform: translateY(-3px); /* Efeito de elevação no botão */
+        box-shadow: 0 10px 20px rgba(0, 188, 212, 0.5);
+    }
+
+    /* Efeito de transição no container */
+    .form-cadastro .input-container {
+        position: relative;
+        margin-bottom: 20px;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Adicionando efeito nas bordas ao passar o mouse */
+    .input-field:hover {
+        border-color: #00e5ff;
+        box-shadow: 0 0 12px rgba(0, 229, 255, 0.7); /* Borda iluminada */
+    }
+
+    /* Responsividade */
+    @media (max-width: 480px) {
+        #cadastro {
+            padding: 25px;
+            max-width: 90%;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+        }
+
+        .input-field, .submit-btn {
+            font-size: 14px;
+        }
+    }
+</style>
+
+<!-- Adicionando Font Awesome para ícones -->
+<script src="https://kit.fontawesome.com/a076d05399.js"></script>
 
     <script>
     function showTab(tab) {
