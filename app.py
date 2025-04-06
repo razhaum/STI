@@ -7,6 +7,7 @@ import pytz
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import send_from_directory
+import random
 
 
 app = Flask(__name__)
@@ -15,13 +16,17 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Usando uma chave secreta gerada aleatoriamente
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydaabase.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'sua-chave'
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+
 # Inicializando banco de dados e migrações
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+nomes_genericos = ["usuario1", "usuario2", "usuario3", "usuario4", "usuario5"]
 
 
 class ChatMessage(db.Model):
@@ -33,7 +38,9 @@ class ChatMessage(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f'<Message {self.id}>'
+        return f"<ChatMessage {self.sender}: {self.text}>"
+
+
 # Modelos do banco de dados
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -57,20 +64,30 @@ class Solicitacao(db.Model):
         return f'<Solicitacao {self.id}>'
 
 # Criar as tabelas no banco de dados
-with app.app_context():
-    db.create_all()
+        def criar_usuarios_iniciais():
+            with app.app_context():
+                db.create_all()
 
-    if not Usuario.query.filter_by(usuario='raphael').first():
-        senha_hash = generate_password_hash('123')
-        novo_usuario = Usuario(usuario='raphael', senha=senha_hash)
-        db.session.add(novo_usuario)
-        db.session.commit()
+                # Usuários iniciais CORRETOS agora:
+                if not Usuario.query.filter_by(usuario='raphael').first():
+                    senha_hash = generate_password_hash('123')
+                    novo_usuario = Usuario(usuario='raphael', senha=senha_hash, permissao='user')
+                    db.session.add(novo_usuario)
 
-    if not Usuario.query.filter_by(usuario='admin').first():
-        senha_hash = generate_password_hash('admin123')
-        novo_usuario = Usuario(usuario='admin', senha=senha_hash)
-        db.session.add(novo_usuario)
-        db.session.commit()
+                if not Usuario.query.filter_by(usuario='admin').first():
+                    senha_hash = generate_password_hash('admin123')
+                    novo_usuario = Usuario(usuario='admin', senha=senha_hash,
+                                           permissao='admin')  # <--- 🚩 CORRIGIDO aqui!
+                    db.session.add(novo_usuario)
+
+                db.session.commit()
+                print("✔️ Usuários fixos criados com sucesso!")
+
+        # Agora invocar a função, dentro da guarda principal
+        if __name__ == '__main__':
+            criar_usuarios_iniciais()  # agora não estará sublinhado em vermelho
+            app.run(debug=True)
+
 
 # Rota inicial para login
 @app.route("/", methods=['GET', 'POST'])
@@ -78,8 +95,14 @@ def login():
     # Verifica se o usuário já está logado
     if session.get('logged_in'):
         if session['permissao'] == 'admin':
-            return redirect(url_for('solicitacoes'))  # Admin vai para solicitações
-        return redirect(url_for('formulario'))  # Outros usuários vão para o formulário
+            return redirect(url_for('solicitacoes'))
+        elif session['permissao'] == 'user':
+            return redirect(url_for('formulario'))
+        else:
+            session.clear()
+            flash('Permissão inválida!', 'danger')
+            return redirect(url_for('login'))
+    # Outros usuários vão para o formulário
 
     # Se o método for POST, faz o login
     if request.method == 'POST':
@@ -91,15 +114,17 @@ def login():
 
         if usuario_cadastrado and check_password_hash(usuario_cadastrado.senha, senha):
             # Usuário logado com sucesso
+            session.clear()
             session['logged_in'] = True
-            session['usuario'] = usuario
+            session['usuario'] = usuario_cadastrado.usuario
             session['permissao'] = usuario_cadastrado.permissao
             flash(f'Bem-vindo, {session["usuario"]}!', 'success')
 
             # Redireciona de acordo com a permissão do usuário
-            if usuario == 'admin':
-                return redirect(url_for('solicitacoes'))  # Admin vai para solicitações
-            return redirect(url_for('formulario'))  # Para outros usuários, vai para o formulário
+            if session['permissao'] == 'admin':
+                return redirect(url_for('solicitacoes'))
+            else:
+                return redirect(url_for('formulario'))  # Para outros usuários, vai para o formulário
 
         flash('Usuário ou senha incorretos!')
         return redirect(url_for('login'))
@@ -115,14 +140,15 @@ def serve_css():
 @app.route('/logout')
 def logout():
     session.clear()
+    flash('Sessão encerrada. Faça login novamente!', 'success')
+
     return redirect(url_for('login'))
 
 # Página protegida - Formulário de solicitação
 @app.route("/formulario", methods=["GET", "POST"])
 def formulario():
     if not session.get('logged_in'):
-        return redirect(url_for('login'))  # Se não estiver logado, redireciona para o login
-
+        return redirect(url_for('login'))  # Se não estiver logado, redireciona para o logi
     if request.method == "POST":
         arquivo = request.files['imagem']
         nome_arquivo = None
@@ -147,7 +173,8 @@ def formulario():
         )
         db.session.add(nova_solicitacao)
         db.session.commit()
-        return redirect(url_for("formulario"))
+
+        return redirect(url_for("formulario.html", qra=qra))
 
     return render_template("formulario.html")
 
@@ -180,60 +207,55 @@ def alterar_status(solicitacao_id):
     return redirect(url_for('solicitacoes'))
 
 
-@app.route('/cadastrar_login', methods=['POST'])
-def cadastrar_login():
-    # Pegando os dados do formulário
-    usuario = request.form['usuario']
-    senha = request.form['senha']
-    permissao = request.form['permissao']
 
-    # Verificando se o usuário já existe no banco
-    usuario_existente = Usuario.query.filter_by(usuario=usuario).first()
-    if usuario_existente:
-        # Caso o usuário já exista, você pode retornar uma mensagem de erro
-        return "Usuário já existe. Tente novamente."
-
-    # Criando um novo usuário e adicionando ao banco de dados
-    novo_usuario = Usuario(usuario=usuario, senha=senha, permissao=permissao)
-
-    try:
-        db.session.add(novo_usuario)
-        db.session.commit()
-        return redirect(url_for('solicitacoes'))  # Redireciona para a página de solicitações
-    except Exception as e:
-        db.session.rollback()
-        return f"Erro ao cadastrar usuário: {e}"
-# Cadastro no solicitacoes
 @app.route("/cadastro", methods=["POST"])
 def cadastro():
-    if not session.get('logged_in'):
+    if not session.get('logged_in') or session['permissao'] != 'admin':
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('login'))
 
     usuario = request.form["usuario"]
     senha = request.form["senha"]
     permissao = request.form["permissao"]
 
-    # Verifica se o usuário já existe
-    if Usuario.query.filter_by(usuario=usuario).first():
-        flash('Usuário já existe! Escolha outro nome.')
-        return redirect(url_for("solicitacoes"))
+    # bloco sugerido aqui:
+    if permissao not in ['admin', 'user']:
+        flash('Permissão inválida!', 'danger')
+        return redirect(url_for('solicitacoes'))
 
-    # Hash da senha antes de salvar no banco
+    # Continua restante do seu código padrão abaixo...
+    usuario_existente = Usuario.query.filter_by(usuario=usuario).first()
+    if usuario_existente:
+        flash('Usuário já existe!', 'warning')
+        return redirect(url_for('solicitacoes'))
+
     senha_hash = generate_password_hash(senha)
-
     novo_usuario = Usuario(usuario=usuario, senha=senha_hash, permissao=permissao)
-    db.session.add(novo_usuario)
-    db.session.commit()
 
-    flash('Cadastro realizado com sucesso!')
-    return redirect(url_for("solicitacoes"))  # Redireciona para a página de solicitações
+    try:
+        db.session.add(novo_usuario)
+        db.session.commit()
+        flash('Usuário cadastrado com sucesso!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro no cadastro: {e}', 'danger')
 
+    return redirect(url_for("solicitacoes"))
 
 @app.route('/chat', methods=['GET'])
 def chat():
-    mensagens = ChatMessage.query.order_by(ChatMessage.timestamp.asc()).all()
-    mensagens_json = [{"text": msg.text, "sender": msg.sender} for msg in mensagens]
-    return jsonify({"messages": mensagens_json})
+    usuario = session.get('usuario', 'Desconhecido')  # Obtém o usuário atual
+    permissao = session.get('permissao')
+
+    # Dados simulados (exemplo)
+    messages = ChatMessage.query.all()
+
+    messages_data = [
+        {"sender": msg.sender, "text": msg.text, "sender_type": msg.sender_type}
+        for msg in messages
+    ]
+
+    return jsonify({'messages': messages_data, 'usuario_atual': usuario, 'permissao': permissao})
 
 
 
@@ -247,11 +269,15 @@ def uploaded_file(nome_arquivo):
 def enviar_mensagem():
     data = request.get_json()  # Recebe o JSON enviado
     texto = data.get('text')   # Extrai o texto da mensagem
+    sender = data.get('sender', 'Desconhecido')  # Padrão "Desconhecido" se não for enviado
+    sender_type = data.get('sender_type', 'usuario')  # Tipo de usuário (admin ou outro)
+
     if texto:
         # Cria a nova mensagem no banco de dados
         nova_mensagem = ChatMessage(text=texto, sender='user', sender_type='user')
         db.session.add(nova_mensagem)
         db.session.commit()
+
         return jsonify({"success": True})
     return jsonify({"success": False})
 

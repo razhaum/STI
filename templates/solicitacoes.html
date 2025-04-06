@@ -113,6 +113,13 @@
 <body>
     <h2>Sistema de Solicitações</h2>
 
+    <div style="text-align: right; margin-bottom: 15px;">
+    <a href="{{ url_for('logout') }}" style="display: inline-block; background-color: #0066cc; color: #fff; padding: 8px 20px; border-radius: 5px; text-decoration: none; transition: 0.3s;">
+        Sair
+    </a>
+</div>
+
+
     <!-- Abas -->
     <div class="tabs">
         <div class="tab active" onclick="openTab('solicitacoes', this)">Solicitações</div>
@@ -164,9 +171,19 @@
         <form method="POST" action="{{ url_for('cadastro') }}">
             <input type="text" name="usuario" placeholder="Nome de usuário" required>
             <input type="password" name="senha" placeholder="Senha" required>
+            <select name="permissao" required>
+        <option value="" disabled selected>Selecione a permissão</option>
+        <option value="user">Usuário</option>
+        <option value="admin">Admin</option>
+    </select>
+
+
             <button type="submit">Cadastrar</button>
         </form>
     </div>
+<div>
+    Usuário Logado: <span id="usuario-logado"></span>
+</div>
 
     <!-- Usuários -->
     <div class="content" id="usuarios">
@@ -223,6 +240,9 @@
             try {
                 const response = await fetch('/chat');
                 const data = await response.json();
+
+                document.getElementById('usuario-logado').innerText = data.usuario_atual;
+
                 document.getElementById('chat-box').innerHTML = data.messages.map(msg => `<div><b>${msg.sender}:</b> ${msg.text}</div>`).join('');
             } catch (e) {
                 console.error("Erro ao carregar mensagens:", e);

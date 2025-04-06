@@ -86,6 +86,27 @@
     z-index: 9999; /* Garante que o link ficará acima de outros elementos */
 }
 
+
+       .logout-button {
+    position: fixed;
+    top: 20px; /* No topo do site */
+    left: 20px; /* ou escolha right se preferir no canto direito */
+    background: linear-gradient(90deg, #00aaff, #4ddcff);
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px; /* Reduzir tamanho da fonte */
+    font-weight: bold;
+    transition: background 0.3s ease;
+    z-index: 9999;
+    width: auto; /* ajusta largura ao conteúdo */
+}
+.logout-button:hover {
+    background: linear-gradient(90deg, #4ddcff, #00aaff);
+}
+
 .logout-link:hover {
     background-color: #ff1a1a; /* Cor de fundo ao passar o mouse (vermelho mais escuro) */
 }
@@ -170,8 +191,7 @@
             <option value="Monitoramento">Monitoramento</option>
             <option value="Rádio">Rádio</option>
         </select>
-
-        <input type="text" name="qra" placeholder="Digite o QRA" required>
+        <input type="text" name="qra" placeholder="Digite o QRA" value="{{ session['usuario'] }}" readonly required><br><br> <!-- Preenchido com o nome do usuário da sessão -->
 
         <textarea name="solicitacao" placeholder="Descreva a solicitação" required></textarea>
 
@@ -194,6 +214,12 @@
     </form>
 
 <button class="logout-button" onclick="logout()">Sair</button>
+
+    <div>
+    Usuário Logado: <span id="usuario-logado"></span>
+</div>
+
+
     <!-- Chat -->
     <div class="chat-container" id="chat-container">
         <div class="chat-header">Chat com o Admin</div>
@@ -217,6 +243,9 @@
             fetch('/chat')
                 .then(response => response.json())
                 .then(data => {
+                    // Exibir usuário logado atual (QRA)
+            document.getElementById('usuario-logado').innerText = data.usuario_atual;
+
                     const chatBox = document.getElementById('chat-box');
                     chatBox.innerHTML = ''; // Limpar as mensagens existentes
                     data.messages.forEach(msg => {
@@ -237,7 +266,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ text: mensagem })
+                body: JSON.stringify({ text: mensagem, sender: 'usuario_logado', sender_type: 'usuario' })
             })
             .then(response => response.json())
             .then(data => {
