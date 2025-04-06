@@ -6,3 +6,6 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+# Ignorar arquivos .pyc e pastas __pycache__
+*.pyc
+__pycache__/
