@@ -21,6 +21,7 @@ app.config['SECRET_KEY'] = 'sua-chave'
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+fuso_sp = pytz.timezone('America/Sao_Paulo')
 
 
 # Inicializando banco de dados e migrações
@@ -218,6 +219,8 @@ def alterar_status(solicitacao_id):
 
     solicitacao = Solicitacao.query.get_or_404(solicitacao_id)
 
+    agora_sp = datetime.now(fuso_sp)  # Pegamos aqui uma vez só, pra usar sempre igual
+
     if solicitacao.status == 'Pendente':
         solicitacao.status = 'Em andamento'
         solicitacao.horario_inicio = solicitacao.horario_inicio or datetime.now()  # Define horário de início se ainda não definido
@@ -225,7 +228,7 @@ def alterar_status(solicitacao_id):
 
     elif solicitacao.status == 'Em andamento':
         solicitacao.status = 'Concluído'
-        solicitacao.datahora_fim = datetime.now()  # Grava agora claramente a data/hora fim!
+        solicitacao.datahora_fim = datetime.now(fuso_sp)  # Grava agora claramente a data/hora fim!
 
     elif solicitacao.status == 'Concluído':
         solicitacao.status = 'Pendente'
