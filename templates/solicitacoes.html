@@ -132,37 +132,61 @@
     <div class="content active" id="solicitacoes">
         <h3>Solicitações Registradas</h3>
         <table>
-            <tr>
-                <th>Setor</th>
-                <th>QRA</th>
-                <th>Solicitação</th>
-                <th>Prioridade</th>
-                <th>Status</th>
-                <th>Imagem</th>
-                <th>Data/Hora</th>
-                <th>Ação</th>
-            </tr>
-            {% for solicitacao in solicitacoes %}
-                <tr>
-                    <td>{{ solicitacao.setor }}</td>
-                    <td>{{ solicitacao.qra }}</td>
-                    <td>{{ solicitacao.solicitacao }}</td>
-                    <td>{{ solicitacao.prioridade }}</td>
-                    <td>{{ solicitacao.status }}</td>
-                    <td>
-                        {% if solicitacao.imagem %}
-                            <img src="{{ url_for('uploaded_file', nome_arquivo=solicitacao.imagem) }}" alt="Imagem" />
-                        {% else %}
-                            Nenhuma imagem
-                        {% endif %}
-                    </td>
-                    <td>{% if solicitacao.datahora %}{{ solicitacao.datahora.strftime('%d/%m/%Y %H:%M:%S') }}{% else %}Não disponível{% endif %}</td>
-                    <td>
-                        <a href="{{ url_for('alterar_status', solicitacao_id=solicitacao.id) }}" style="color:#00cc66">Alterar Status</a>
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
+    <tr>
+        <th>Setor</th>
+        <th>QRA</th>
+        <th>Solicitação</th>
+        <th>Prioridade</th>
+        <th>Status</th>
+        <th>Imagem</th>
+        <th>Hora/Início</th>
+        <th>Hora/Término</th>
+        <th>Tempo Decorrido</th>
+        <th>Ação</th>
+    </tr>
+    {% for solicitacao in solicitacoes %}
+    <tr>
+        <td>{{ solicitacao.setor }}</td>
+        <td>{{ solicitacao.qra }}</td>
+        <td>{{ solicitacao.solicitacao }}</td>
+        <td>{{ solicitacao.prioridade }}</td>
+        <td>{{ solicitacao.status }}</td>
+        <td>
+            {% if solicitacao.imagem %}
+                <img src="{{ url_for('uploaded_file', nome_arquivo=solicitacao.imagem) }}" alt="Imagem" />
+            {% else %}
+                Nenhuma imagem
+            {% endif %}
+        </td>
+        <td>
+            {% if solicitacao.datahora %}
+                {{ solicitacao.datahora.strftime('%d/%m/%Y %H:%M:%S') }}
+            {% else %}
+                Não disponível
+            {% endif %}
+        </td>
+        <td>
+            {% if solicitacao.datahora_fim %}
+                {{ solicitacao.datahora_fim.strftime('%d/%m/%Y %H:%M:%S') }}
+            {% else %}
+                Não finalizado
+            {% endif %}
+        </td>
+        <td>
+            {% if solicitacao.datahora and solicitacao.datahora_fim %}
+                {% set duracao = solicitacao.datahora_fim - solicitacao.datahora %}
+                {{ duracao }}
+            {% else %}
+                Em andamento...
+            {% endif %}
+        </td>
+        <td>
+            <a href="{{ url_for('alterar_status', solicitacao_id=solicitacao.id) }}" style="color:#00cc66">Alterar Status</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
     </div>
 
     <!-- Cadastro -->

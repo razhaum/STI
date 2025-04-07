@@ -59,6 +59,7 @@ class Solicitacao(db.Model):
     # Remover datahora, se não for mais necessário
     datahora = db.Column(db.DateTime, nullable=True)  # Nullable permite que o campo seja vazio
     horario_inicio = db.Column(db.DateTime)
+    datahora_fim = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
         return f'<Solicitacao {self.id}>'
