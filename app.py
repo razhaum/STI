@@ -427,5 +427,5 @@ def excluir_usuario(id_usuario):
     return redirect(url_for('solicitacoes'))
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    app.run(debug=True)
 
