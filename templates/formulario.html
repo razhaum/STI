@@ -178,9 +178,49 @@
             cursor: pointer;
             z-index: 10000;
         }
+
+        .flash {
+    margin: 10px auto;
+    width: 80%;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 14px;
+    color: white;
+    box-sizing: border-box;
+}
+
+.alert-success {
+    background-color: #28a745; /* Verde sucesso */
+}
+
+.alert-error {
+    background-color: #dc3545; /* Vermelho erro */
+}
+
+.alert-success {
+    background-color: #28a745; /* verde para sucesso */
+}
+
+.alert-error {
+    background-color: #dc3545; /* vermelho para erro */
+}
+
     </style>
 </head>
 <body>
+
+    <!-- Exibe mensagens flash imediatamente acima do formulário (Recomendado) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash alert-{{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
     <form action="/formulario" method="post" enctype="multipart/form-data">
         <h2>Solicitações ao STI</h2>
 
@@ -191,7 +231,8 @@
             <option value="Monitoramento">Monitoramento</option>
             <option value="Rádio">Rádio</option>
         </select>
-        <input type="text" name="qra" placeholder="Digite o QRA" value="{{ session['usuario'] }}" readonly required><br><br> <!-- Preenchido com o nome do usuário da sessão -->
+
+        <input type="text" name="qra" placeholder="Digite o QRA" value="{{ session['usuario'] }}" readonly required><br><br>
 
         <textarea name="solicitacao" placeholder="Descreva a solicitação" required></textarea>
 
@@ -213,11 +254,14 @@
         <button type="submit">Enviar Solicitação</button>
     </form>
 
-<button class="logout-button" onclick="logout()">Sair</button>
+    <button class="logout-button" onclick="logout()">Sair</button>
 
     <div>
-    Usuário Logado: <span id="usuario-logado"></span>
-</div>
+        Usuário Logado: <span id="usuario-logado">{{ session['usuario'] }}</span>
+    </div>
+
+</body>
+
 
 
     <!-- Chat -->
@@ -236,56 +280,36 @@
     <script>
         function logout() {
     // Redirecionar para a página de logout (ajuste conforme necessário)
-    window.location.href = '/logout';  // A URL de logout pode ser ajustada conforme sua aplicação
-}
-
-        function carregarMensagens() {
-            fetch('/chat')
-                .then(response => response.json())
-                .then(data => {
-                    // Exibir usuário logado atual (QRA)
-            document.getElementById('usuario-logado').innerText = data.usuario_atual;
-
-                    const chatBox = document.getElementById('chat-box');
-                    chatBox.innerHTML = ''; // Limpar as mensagens existentes
-                    data.messages.forEach(msg => {
-                        const msgElement = document.createElement('div');
-                        msgElement.innerText = `${msg.sender}: ${msg.text}`;
-                        chatBox.appendChild(msgElement);
-                    });
-                });
+            window.location.href = '/logout';  // A URL de logout pode ser ajustada conforme sua aplicação
         }
 
-        function enviarMensagem() {
-            const input = document.getElementById('chat-input');
-            const mensagem = input.value;
-            if (mensagem.trim() === '') return;
 
-            fetch('/enviar_mensagem', {
+        async function carregarMensagens() {
+            try {
+                const response = await fetch('/chat');
+                const data = await response.json();
+
+                document.getElementById('usuario-logado').innerText = data.usuario_atual;
+
+                document.getElementById('chat-box').innerHTML = data.messages.map(msg => `<div><b>${msg.sender}:</b> ${msg.text}</div>`).join('');
+            } catch (e) {
+                console.error("Erro ao carregar mensagens:", e);
+            }
+        }
+
+        async function enviarMensagem() {
+            const text = document.getElementById('chat-input').value.trim();
+            if (!text) return;
+            await fetch('/chat/enviar', { // <-- rota correta!
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ text: mensagem, sender: 'usuario_logado', sender_type: 'usuario' })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    input.value = '';
-                    carregarMensagens(); // Atualiza as mensagens
-                }
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text})
             });
-        }
 
-        function toggleChat() {
-            const chatContainer = document.getElementById('chat-container');
-            chatContainer.style.display = chatContainer.style.display === 'none' ? 'block' : 'none';
-        }
-
-        // Carregar mensagens ao carregar a página
-        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('chat-input').value = '';
             carregarMensagens();
-        });
+        }
+
     </script>
 
 </body>

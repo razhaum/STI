@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Gerenciamento de Solicitações</title>
+    <title>Gerenciamento de Usuários</title>
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch&display=swap" rel="stylesheet">
     <style>
         body {
@@ -111,7 +111,7 @@
 </head>
 
 <body>
-    <h2>Sistema de Solicitações</h2>
+    <h2>Gerenciamento de Usuários</h2>
 
     <div style="text-align: right; margin-bottom: 15px;">
     <a href="{{ url_for('logout') }}" style="display: inline-block; background-color: #0066cc; color: #fff; padding: 8px 20px; border-radius: 5px; text-decoration: none; transition: 0.3s;">
@@ -173,13 +173,16 @@
             {% endif %}
         </td>
         <td>
-            {% if solicitacao.datahora and solicitacao.datahora_fim %}
-                {% set duracao = solicitacao.datahora_fim - solicitacao.datahora %}
-                {{ duracao }}
-            {% else %}
-                Em andamento...
-            {% endif %}
-        </td>
+    {% if solicitacao.datahora_fim and solicitacao.horario_inicio %}
+        {% set duracao = solicitacao.datahora_fim - solicitacao.horario_inicio %}
+        {% set minutos, segundos = duracao.seconds // 60, duracao.seconds % 60 %}
+        {{ duracao.days }} dias, {{ minutos }} minutos e {{ segundos }} segundos
+    {% elif solicitacao.horario_inicio %}
+        Em andamento...
+    {% else %}
+        Não iniciado
+    {% endif %}
+</td>
         <td>
             <a href="{{ url_for('alterar_status', solicitacao_id=solicitacao.id) }}" style="color:#00cc66">Alterar Status</a>
         </td>
@@ -216,27 +219,64 @@
             <tr>
                 <th>ID</th>
                 <th>Nome</th>
-                <th>Ação</th>
-            </tr>
-            {% for usuario in usuarios %}
-                <tr>
-                    <td>{{ usuario.id }}</td>
-                    <td>{{ usuario.usuario }}</td>
-                    <td>
-                        {% if usuario.usuario != 'admin' %}
-                            <form method="POST" action="{{ url_for('excluir_usuario', id_usuario=usuario.id) }}" onsubmit="return confirm('Excluir usuário?');">
-                                <button type="submit">Excluir</button>
-                            </form>
-                        {% else %}
-                            Admin protegido
-                        {% endif %}
-                    </td>
-                </tr>
+                <th>Permissão Atual</th>
+                <th>Mudar Permissão</th>
+                <th>Excluir Usuário</th>
+</tr>
+        {% for usuario in usuarios %}
+            <tr>
+                <td>{{ usuario.id }}</td>
+                <td>{{ usuario.usuario }}</td>
+                <td>{{ usuario.permissao }}</td>
+
+                <!-- Botão para alternar permissão entre "admin" e "user" -->
+                <td>
+    {% if usuario.usuario != 'admin' %}
+        <a href="{{ url_for('alterar_permissao_usuario', usuario_id=usuario.id) }}"
+           style="
+               display: inline-block;
+               text-decoration: none;
+               padding: 7px 12px;
+               color: white;
+               border-radius: 5px;
+               background-color: {% if usuario.permissao == 'user' %}#3498db{% else %}#2ecc71{% endif %};
+               transition: background-color 0.3s ease;">
+            {% if usuario.permissao == 'user' %}
+                🔑 Mudar para Admin
             {% else %}
-                <tr><td colspan="3">Nenhum usuário cadastrado.</td></tr>
-            {% endfor %}
-        </table>
-    </div>
+                👤 Mudar para Usuário
+            {% endif %}
+        </a>
+    {% else %}
+        <span style="color:grey;">🔒 Admin protegido</span>
+    {% endif %}
+</td>
+
+
+                <!-- Formulário para exclusão com verificação de segurança -->
+                <td>
+                    {% if usuario.usuario != 'admin' %}
+                        <form method="POST" action="{{ url_for('excluir_usuario', id_usuario=usuario.id) }}"
+                              onsubmit="return confirm('Tem certeza que deseja excluir este usuário {{ usuario.usuario }}?');">
+                            <button type="submit">Excluir</button>
+                        </form>
+                    {% else %}
+                        Admin protegido
+                    {% endif %}
+                </td>
+
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">Nenhum usuário cadastrado.</td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+
+
+
 
     <!-- Chat -->
     <div class="content" id="chat">
@@ -276,11 +316,12 @@
         async function enviarMensagem() {
             const text = document.getElementById('chat-input').value.trim();
             if (!text) return;
-            await fetch('/enviar_mensagem', {
+            await fetch('/chat/enviar', { // <-- rota correta!
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({text, sender: '{{ session["usuario"] }}', sender_type: '{{ session["permissao"] }}'})
+                body: JSON.stringify({text})
             });
+
             document.getElementById('chat-input').value = '';
             carregarMensagens();
         }

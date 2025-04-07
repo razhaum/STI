@@ -24,7 +24,7 @@ def upgrade():
 
     # Aqui você pode fazer a atualização dos valores existentes (se necessário)
     # Exemplo: op.execute("UPDATE solicitacao SET classe = 'default_value' WHERE classe IS NULL")
-    
+
     # Agora, altere a coluna 'classe' para nullable=False (não permitindo valores NULL)
     with op.batch_alter_table('solicitacao', schema=None) as batch_op:
         batch_op.alter_column('classe', nullable=False)
