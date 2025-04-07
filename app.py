@@ -1,5 +1,6 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
+from flask_socketio import SocketIO, emit
 from flask_sqlalchemy import SQLAlchemy
 # noinspection PyPackageRequirements
 from flask_migrate import Migrate
@@ -7,10 +8,7 @@ from datetime import datetime
 import pytz
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import send_from_directory
-
 import random
-
 
 
 app = Flask(__name__)
@@ -28,6 +26,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Inicializando banco de dados e migrações
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+socketio = SocketIO(app)
 
 
 
@@ -64,14 +63,10 @@ class Solicitacao(db.Model):
     datahora = db.Column(db.DateTime, nullable=True)  # Nullable permite que o campo seja vazio
     horario_inicio = db.Column(db.DateTime)
     datahora_fim = db.Column(db.DateTime, nullable=True)
-    atendente = db.Column(db.String(120), nullable=True)  # Quem atendeu (Admin)
-
-    def __repr__(self):
-        return f'<Solicitacao {self.id}>'
-
-
+    atendente = db.Column(db.String(100))  # Quem atendeu (Admin)
 
     # Função fora da classe para criar usuarios iniciais
+    def __repr__(self):
         return f'<Solicitacao {self.id}>'
 
 
@@ -89,12 +84,10 @@ def criar_usuarios_iniciais():
     print("✔️ Usuários iniciais foram adicionados.")
 
 
-# Bloco principal da aplicação
-if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Cria explicitamente as tabelas se não existirem ainda
         criar_usuarios_iniciais()  # Usuários iniciais garantidos agora!
-    app.run(debug=True)
+
 
 
 # Rota inicial para login
@@ -184,7 +177,26 @@ def formulario():
         try:
             db.session.add(nova_solicitacao)
             db.session.commit()
+            dados_da_solicitacao = {
+                'id': nova_solicitacao.id,
+                'setor': nova_solicitacao.setor,
+                'qra': nova_solicitacao.qra,
+                'solicitacao': nova_solicitacao.solicitacao,
+                'prioridade': nova_solicitacao.prioridade,
+                'status': nova_solicitacao.status,
+                'datahora': nova_solicitacao.datahora.strftime('%Y-%m-%d %H:%M:%S')
+            }
+
+            # Emitir evento socketio após gravar o registro no banco com sucesso
+            #socketio.emit('nova_solicitacao', dados_da_solicitacao)
+
+            #socketio.emit('solicitacao_atendida', {
+                #'id': nova_solicitacao.id,
+                #'atendente': nova_solicitacao.atendente  # isso só se existir esse campo no model
+           # })
+
             flash('Solicitação enviada com sucesso!', 'success')
+
         except Exception as e:
             db.session.rollback()
             flash(f'Ocorreu um erro ao enviar a solicitação: {e}', 'error')
@@ -228,6 +240,22 @@ def alterar_status(solicitacao_id):
 
     db.session.commit()
     return redirect(url_for('solicitacoes'))
+
+@app.route('/solicitacao/<int:id>/atender', methods=["POST"])
+def atender_solicitacao(id):
+    solicitacao = Solicitacao.query.get_or_404(id)
+    solicitacao.horario_inicio = datetime.now(pytz.timezone('America/Sao_Paulo'))
+    solicitacao.status = "Em andamento"
+    solicitacao.atendente = session['usuario']  # armazenar quem atende
+    db.session.commit()
+
+    # avisa ao solicitante original sobre quem atende a solicitação:
+    socketio.emit('solicitacao_atendida', {
+        'id': solicitacao.id,
+        'atendente': solicitacao.atendente
+    }, broadcast=True)
+
+    return redirect('/admin/solicitacoes')
 
 
 
@@ -328,14 +356,14 @@ def enviar_mensagem():
 
     return jsonify({"status": "ok"})
 
-
-
-
-
 # Rota para servir arquivos carregados
 @app.route('/uploads/<nome_arquivo>')
 def uploaded_file(nome_arquivo):
     return send_from_directory(app.config['UPLOAD_FOLDER'], nome_arquivo)
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+def allowed_file(filename):
+        return '.' in filename and \
+            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # Rota para enviar uma nova solicitação
@@ -346,13 +374,14 @@ def enviar_solicitacao():
     qra = request.form['qra']
     solicitacao = request.form['solicitacao']
     prioridade = request.form['prioridade']
-    imagem = request.files.get('imagem')  # Aqui é onde o arquivo de imagem é recebido
+    imagem = request.files.get('imagem')
+    imagem_filename = None
 
-    if imagem and allowed_file(imagem.filename):  # Verifica se o arquivo é válido
-        imagem_filename = secure_filename(imagem.filename)  # Garante que o nome do arquivo é seguro
-        imagem.save(os.path.join(app.config['UPLOAD_FOLDER'], imagem_filename))  # Salva o arquivo no diretório correto
-    else:
-        imagem_filename = None  # Caso não haja imagem ou o arquivo seja inválido
+    if imagem and allowed_file(imagem.filename):
+        imagem_filename = secure_filename(imagem.filename)
+        imagem.save(os.path.join(app.config['UPLOAD_FOLDER'], imagem_filename))
+    # Aqui é onde o arquivo de imagem é recebido
+
 
     # Criação da nova solicitação sem 'datahora' e 'horario_inicio'
     nova_solicitacao = Solicitacao(
@@ -360,10 +389,11 @@ def enviar_solicitacao():
         qra=qra,
         solicitacao=solicitacao,
         prioridade=prioridade,
-        status="Pendente",  # Definindo o status como Pendente ou outro valor desejado
-        imagem=imagem_filename,  # Salva o nome do arquivo ou None
-        # Remova os campos 'datahora' e 'horario_inicio' da inserção
+        status="Pendente",
+        imagem=imagem_filename,
     )
+
+
 
     # Adiciona a solicitação ao banco de dados
     try:
@@ -374,7 +404,7 @@ def enviar_solicitacao():
         db.session.rollback()
         flash(f'Ocorreu um erro ao salvar a solicitação: {e}', 'error')
 
-    return redirect(url_for('listar_solicitacoes'))
+    return redirect(url_for('solicitacoes'))
 
 
 # Rota para excluir um usuário
@@ -396,6 +426,6 @@ def excluir_usuario(id_usuario):
     flash('Usuário excluído com sucesso!')
     return redirect(url_for('solicitacoes'))
 
-# Rodando a aplicação
-if __name__ == "__main__":
-    app.run(debug=True)
+if __name__ == '__main__':
+    socketio.run(app, debug=True)
+

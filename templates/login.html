@@ -60,18 +60,6 @@
     </style>
 </head>
 <body>
-
-<!-- Exibição das mensagens flash -->
-<div class="flash-message">
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-                <p>{{ message }}</p>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-</div>
-
 <!-- Formulário de login -->
 <form action="{{ url_for('login') }}" method="post">
     <h2>Login</h2>

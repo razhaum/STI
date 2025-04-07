@@ -326,5 +326,23 @@
             carregarMensagens();
         }
     </script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+const socket = io();
+
+// Solicita permissão para notificações ao carregar a página (no PC do admin):
+document.addEventListener('DOMContentLoaded', function () {
+    Notification.requestPermission();
+});
+
+// Escuta novas solicitações vindas via socket no ADMIN:
+socket.on('nova_solicitacao', function(data){
+    new Notification("Nova solicitação recebida!", {
+        body: "Usuário: " + data.usuario + "\nSetor: " + data.setor + "\nPrioridade: " + data.prioridade
+    });
+});
+</script>
+
 </body>
 </html>

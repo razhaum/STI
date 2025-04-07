@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>Solicitações ao STI</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -179,16 +182,16 @@
             z-index: 10000;
         }
 
-        .flash {
-    margin: 10px auto;
-    width: 80%;
-    padding: 10px;
-    border-radius: 8px;
-    text-align: center;
-    font-size: 14px;
-    color: white;
-    box-sizing: border-box;
+        flash.alert-success {
+    width: auto; /* ajusta ao tamanho do texto */
+    display: inline-block; /* permite que a largura seja do tamanho do conteúdo */
+    padding: 4px 10px; /* menor padding vertical, mais compacto horizontalmente */
+    font-size: 14px; /* manteve ou aumentou o tamanho do texto conforme você desejar */
+    margin: 5px auto; /* margem para centralizar */
+    border-radius: 6px; /* arredondamento menor opcional */
 }
+
+
 
 .alert-success {
     background-color: #28a745; /* Verde sucesso */
@@ -311,6 +314,46 @@
         }
 
     </script>
+
+<!-- Socket.IO -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<!-- Toastify JS -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+    const socket = io();
+
+    // Escutando evento vindo do servidor Flask
+    socket.on('nova_solicitacao', function (data) {
+        Toastify({
+            text: "🟢 Nova solicitação recebida!",
+            duration: 4000, // Duração da notificação
+            gravity: "top", // top ou bottom
+            position: 'right', // left, center ou right
+            style: {
+                background: "linear-gradient(to right, #00b09b, #96c93d)",
+                fontSize: "16px"
+            }
+        }).showToast();
+
+        // Você pode utilizar informação recebida no data também!
+        console.log("Dados da nova solicitação: ", data);
+    });
+
+    socket.on('solicitacao_atendida', function (data) {
+        Toastify({
+            text: `✔️ Sua solicitação #${data.id} está sendo atendida por ${data.atendente}!`,
+            duration: 5000,
+            gravity: "top",
+            position: 'right',
+            style: {
+                background: "linear-gradient(to right, #000428, #004e92)",
+                fontSize: "16px"
+            }
+        }).showToast();
+    });
+</script>
+
 
 </body>
 </html>
