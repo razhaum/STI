@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
-from flask_socketio import SocketIO, emit
+## from flask_socketio import SocketIO, emit
 from flask_sqlalchemy import SQLAlchemy
 # noinspection PyPackageRequirements
 from flask_migrate import Migrate
@@ -26,7 +26,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Inicializando banco de dados e migrações
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-socketio = SocketIO(app)
+##socketio = SocketIO(app)
 
 
 
@@ -187,13 +187,7 @@ def formulario():
                 'datahora': nova_solicitacao.datahora.strftime('%Y-%m-%d %H:%M:%S')
             }
 
-            # Emitir evento socketio após gravar o registro no banco com sucesso
-            #socketio.emit('nova_solicitacao', dados_da_solicitacao)
 
-            #socketio.emit('solicitacao_atendida', {
-                #'id': nova_solicitacao.id,
-                #'atendente': nova_solicitacao.atendente  # isso só se existir esse campo no model
-           # })
 
             flash('Solicitação enviada com sucesso!', 'success')
 
@@ -241,21 +235,21 @@ def alterar_status(solicitacao_id):
     db.session.commit()
     return redirect(url_for('solicitacoes'))
 
-@app.route('/solicitacao/<int:id>/atender', methods=["POST"])
-def atender_solicitacao(id):
-    solicitacao = Solicitacao.query.get_or_404(id)
-    solicitacao.horario_inicio = datetime.now(pytz.timezone('America/Sao_Paulo'))
-    solicitacao.status = "Em andamento"
-    solicitacao.atendente = session['usuario']  # armazenar quem atende
-    db.session.commit()
+####@app.route('/solicitacao/<int:id>/atender', methods=["POST"])
+##def atender_solicitacao(id):
+    ## solicitacao = Solicitacao.query.get_or_404(id)
+    ##  solicitacao.horario_inicio = datetime.now(pytz.timezone('America/Sao_Paulo'))
+    ##  solicitacao.status = "Em andamento"
+    ##  solicitacao.atendente = session['usuario']  # armazenar quem atende
+    ##   db.session.commit()
 
     # avisa ao solicitante original sobre quem atende a solicitação:
-    socketio.emit('solicitacao_atendida', {
-        'id': solicitacao.id,
-        'atendente': solicitacao.atendente
-    }, broadcast=True)
+    ##  socketio.emit('solicitacao_atendida', {
+    ##     'id': solicitacao.id,
+    ##      'atendente': solicitacao.atendente
+    ## }, broadcast=True)
 
-    return redirect('/admin/solicitacoes')
+## return redirect('/admin/solicitacoes')
 
 
 
