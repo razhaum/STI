@@ -3,19 +3,22 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 ## from flask_socketio import SocketIO, emit
 from flask_sqlalchemy import SQLAlchemy
 # noinspection PyPackageRequirements
+from dotenv import load_dotenv
 from flask_migrate import Migrate
 from datetime import datetime
 import pytz
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
+
 import random
+load_dotenv()
 
 
 app = Flask(__name__)
 
 # Configurações básicas e sessão
 app.secret_key = os.urandom(24)  # Usando uma chave secreta gerada aleatoriamente
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydatabase.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'sua-chave'
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
