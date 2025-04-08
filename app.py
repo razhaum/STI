@@ -36,6 +36,7 @@ class ChatMessage(db.Model):
     sender_type = db.Column(db.String(50), nullable=False)  # 'user' ou 'admin'
     text = db.Column(db.Text, nullable=False)  # Uma única definição correta aqui
     recipient = db.Column(db.String(100), nullable=True)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(fuso_sp))
 
     def __repr__(self):
         return f"<ChatMessage {self.sender}: {self.text}>"
