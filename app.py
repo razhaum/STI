@@ -17,7 +17,12 @@ app = Flask(__name__)
 
 # Configurações básicas e sessão
 app.secret_key = os.urandom(24)  # Usando uma chave secreta gerada aleatoriamente
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get ('DATABASE_URL', 'sqlite:///mydatabase.db')
+if os.environ.get('FLASK_ENV') == 'production':
+    # Se o ambiente for produção (Render), usamos a URL interna
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://bancodados_37z2_user:ohzDz2XBwQ9js0Z8qyN3Di32WD4opjsf@dpg-cvrqidili9vc739lvlrg-a/bancodados_37z2')
+else:
+    # Se o ambiente for desenvolvimento (local), usamos a URL externa
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://bancodados_37z2_user:ohzDz2XBwQ9js0Z8qyN3Di32WD4opjsf@dpg-cvrqidili9vc739lvlrg-a.oregon-postgres.render.com/bancodados_37z2'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Secret Key fixa (recomendada para produção)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '7sX!vZp2#rKw9D6rA^gLg3T@FvUq1mWz')
