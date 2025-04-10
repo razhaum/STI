@@ -1,8 +1,8 @@
-"""Migração corrigida com timestamp completa claramente agora
+"""empty message
 
-Revision ID: 3cdf9aef2938
+Revision ID: e92331e601f6
 Revises: 
-Create Date: 2025-04-08 12:07:27.065123
+Create Date: 2025-04-10 11:23:55.824233
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '3cdf9aef2938'
+revision = 'e92331e601f6'
 down_revision = None
 branch_labels = None
 depends_on = None
