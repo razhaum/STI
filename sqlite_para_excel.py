@@ -15,7 +15,7 @@ conexao.close()
 
 # Exporta diretamente para Excel
 df.to_excel('solicitacoes.xlsx', index=False, engine='openpyxl')
-df.to_excel('usuario.xlsx', index=False, engine='openpyxl')
+
 
 
 print(f'🚀 Tabela "{nome_tabela}" exportada com sucesso para "solicitacoes.xlsx"!')

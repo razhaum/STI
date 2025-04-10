@@ -5,6 +5,22 @@
     <title>Gerenciamento de Usuários</title>
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch&display=swap" rel="stylesheet">
     <style>
+          grafico-box {
+            flex: 1;
+            background-color: #333;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        canvas {
+    max-width: 100%;
+    width: 300px;
+    height: auto;
+    margin: 0 auto;
+    display: block;
+}
+
         body {
             font-family: 'Chakra Petch', sans-serif;
             background-color: #151515;
@@ -126,6 +142,7 @@
         <div class="tab" onclick="openTab('cadastro', this)">Cadastro</div>
         <div class="tab" onclick="openTab('usuarios', this)">Usuários</div>
         <div class="tab" onclick="openTab('chat', this)">Chat</div>
+         <div class="tab" onclick="openTab('analise', this)">Análise de Solicitações</div> <!-- Nova Aba -->
     </div>
 
     <!-- Solicitações -->
@@ -192,6 +209,64 @@
 
     </div>
 
+    <div class="content" id="analise">
+    <h3>Panorama de Solicitações</h3>
+
+    <!-- Filtros para escolher o período (diário, semanal, mensal) -->
+    <form method="GET" action="{{ url_for('analise_solicitacoes') }}">
+        <select name="periodo" id="periodo">
+            <option value="diario">Diário</option>
+            <option value="semanal">Semanal</option>
+            <option value="mensal">Mensal</option>
+        </select>
+        <button type="submit">Filtrar</button>
+    </form>
+
+        <!-- Tipo de Gráfico: só aparecerá na aba de Panorama de Solicitações -->
+    <label for="tipoGrafico">Tipo de Gráfico:</label>
+    <select id="tipoGrafico" onchange="mudarTipoGrafico()">
+        <option value="bar">Barras</option>
+        <option value="line">Linha</option>
+        <option value="pie">Pizza</option>
+        <option value="doughnut">Rosquinha</option>
+        <option value="radar">Radar</option>
+    </select>
+
+    <!-- Gráfico de Solicitações -->
+    <canvas id="solicitacoesGrafico" width="400" height="200"></canvas>
+        <h4>Atendimentos por Responsável</h4>
+<div id="grafico-atendentes-container">
+    <canvas id="graficoAtendentes" width="300" height="200"></canvas>
+</div>
+
+    <!-- Tabela de Solicitações -->
+    <h4>Detalhamento das Solicitações</h4>
+    <table>
+        <tr>
+            <th>Setor</th>
+            <th>Prioridade</th>
+            <th>Status</th>
+            <th>Data/Início</th>
+            <th>Data/Término</th>
+        </tr>
+        {% for solicitacao in solicitacoes_analise %}
+        <tr>
+            <td>{{ solicitacao.setor }}</td>
+            <td>{{ solicitacao.prioridade }}</td>
+            <td>{{ solicitacao.status }}</td>
+            <td>{{ solicitacao.datahora.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+            <td>
+                {% if solicitacao.datahora_fim %}
+                    {{ solicitacao.datahora_fim.strftime('%d/%m/%Y %H:%M:%S') }}
+                {% else %}
+                    Não finalizado
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+        </div>
+
     <!-- Cadastro -->
     <div class="content" id="cadastro">
         <h3>Cadastro de Usuários</h3>
@@ -214,44 +289,58 @@
 
     <!-- Usuários -->
     <div class="content" id="usuarios">
-        <h3>Usuários Cadastrados</h3>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Nome</th>
-                <th>Permissão Atual</th>
-                <th>Mudar Permissão</th>
-                <th>Excluir Usuário</th>
-</tr>
+    <h3>Usuários Cadastrados</h3>
+
+<form method="GET" action="{{ url_for('buscar_usuario') }}">
+        <input type="text" name="usuario" placeholder="Buscar por nome de usuário" required>
+        <button type="submit">Buscar</button>
+    </form>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Mudar Senha</th>
+            <th>Permissão Atual</th>
+            <th>Mudar Permissão</th>
+            <th>Excluir Usuário</th>
+        </tr>
         {% for usuario in usuarios %}
-            <tr>
+            <tr {% if usuario_encontrado and usuario.id == usuario_encontrado.id %}style="background-color: #f1c40f;"{% endif %}>
+
                 <td>{{ usuario.id }}</td>
                 <td>{{ usuario.usuario }}</td>
-                <td>{{ usuario.permissao }}</td>
+
+                <!-- Formulário para Mudar Senha -->
+                <td>
+                    <form method="POST" action="{{ url_for('alterar_senha_usuario', usuario_id=usuario.id) }}">
+                        <input type="password" name="nova_senha" placeholder="Nova Senha" required>
+                        <button type="submit" style="padding: 5px 10px; background-color: #f39c12; color: white; border-radius: 5px;">
+                            Alterar Senha
+                        </button>
+                    </form>
+                </td>
+
+                <!-- Permissão Atual -->
+                <td>
+                    <span>{{ usuario.permissao }}</span>
+                </td>
 
                 <!-- Botão para alternar permissão entre "admin" e "user" -->
                 <td>
-    {% if usuario.usuario != 'admin' %}
-        <a href="{{ url_for('alterar_permissao_usuario', usuario_id=usuario.id) }}"
-           style="
-               display: inline-block;
-               text-decoration: none;
-               padding: 7px 12px;
-               color: white;
-               border-radius: 5px;
-               background-color: {% if usuario.permissao == 'user' %}#3498db{% else %}#2ecc71{% endif %};
-               transition: background-color 0.3s ease;">
-            {% if usuario.permissao == 'user' %}
-                🔑 Mudar para Admin
-            {% else %}
-                👤 Mudar para Usuário
-            {% endif %}
-        </a>
-    {% else %}
-        <span style="color:grey;">🔒 Admin protegido</span>
-    {% endif %}
-</td>
-
+                    {% if usuario.usuario != 'admin' %}
+                        <a href="{{ url_for('alterar_permissao_usuario', usuario_id=usuario.id) }}"
+                           style="display: inline-block; text-decoration: none; padding: 7px 12px; color: white; border-radius: 5px; background-color: {% if usuario.permissao == 'user' %}#3498db{% else %}#2ecc71{% endif %}; transition: background-color 0.3s ease;">
+                            {% if usuario.permissao == 'user' %}
+                                🔑 Mudar para Admin
+                            {% else %}
+                                👤 Mudar para Usuário
+                            {% endif %}
+                        </a>
+                    {% else %}
+                        <span style="color:grey;">🔒 Admin protegido</span>
+                    {% endif %}
+                </td>
 
                 <!-- Formulário para exclusão com verificação de segurança -->
                 <td>
@@ -268,11 +357,13 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="5">Nenhum usuário cadastrado.</td>
+                <td colspan="6">Nenhum usuário cadastrado.</td>
             </tr>
         {% endfor %}
     </table>
 </div>
+
+
 
 
 
@@ -287,7 +378,153 @@
         </div>
     </div>
 
-    <script>
+
+
+
+</select>
+
+<script>const ctx = document.getElementById('graficoPrincipal').getContext('2d');</script>
+    <canvas id="graficoPrincipal" style="max-width: 200px; max-height: 100px; margin: auto;"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    let tipoAtual = 'bar'; // tipo padrão
+    let chartInstance = null;
+
+
+    const dadosGrafico = {
+        labels: ['Hoje', 'Esta Semana', 'Este Mês'],
+        datasets: [{
+            label: 'Solicitações Registradas',
+            data: [12, 19, 5], // substitua com dados reais
+            backgroundColor: [
+                'rgba(0, 123, 255, 0.6)',
+                'rgba(40, 167, 69, 0.6)',
+                'rgba(255, 193, 7, 0.6)'
+            ],
+            borderColor: [
+                'rgba(0, 123, 255, 1)',
+                'rgba(40, 167, 69, 1)',
+                'rgba(255, 193, 7, 1)'
+            ],
+            borderWidth: 2,
+            borderRadius: 10,
+        }]
+    };
+
+    function renderizarGrafico(tipo) {
+        const ctx = document.getElementById('solicitacoesGrafico').getContext('2d');
+        if (chartInstance) chartInstance.destroy(); // remove o antigo
+
+        chartInstance = new Chart(ctx, {
+            type: tipo,
+            data: dadosGrafico,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#fff'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Solicitações por Período',
+                        color: '#fff'
+                    }
+                },
+                scales: tipo === 'bar' || tipo === 'line' ? {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#fff' },
+                        title: {
+                            display: true,
+                            text: 'Quantidade',
+                            color: '#fff'
+                        }
+                    },
+                    x: {
+                        ticks: { color: '#fff' },
+                        title: {
+                            display: true,
+                            text: 'Período',
+                            color: '#fff'
+                        }
+                    }
+                } : {}
+            }
+        });
+    }
+
+    function mudarTipoGrafico() {
+        tipoAtual = document.getElementById("tipoGrafico").value;
+        renderizarGrafico(tipoAtual);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        renderizarGrafico(tipoAtual);
+    });
+</script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Gráfico 1: Solicitações (já existente)
+    const ctx1 = document.getElementById('solicitacoesGrafico').getContext('2d');
+    const solicitacoesChart = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: ['Hoje', 'Esta Semana', 'Este Mês'],
+            datasets: [{
+                label: 'Solicitações Registradas',
+                data: [12, 19, 5], // <- substitua com dados reais
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Gráfico 2: Atendimentos por responsável
+    const ctx2 = document.getElementById('graficoAtendentes').getContext('2d');
+    const atendentesChart = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: ['Fabiana', 'Dantas', 'Higino'], // nomes dos atendentes
+            datasets: [{
+                label: 'Atendimentos Realizados',
+                data: [10, 7, 5], // <- você deve puxar esses dados do backend
+                backgroundColor: ['#e74c3c', '#2ecc71', '#9b59b6'],
+                borderColor: '#222',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+});
+</script>
+
+
+
+
+
+        <script>
+
         function openTab(tabId, element) {
             // Esconde todas as abas
             document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));

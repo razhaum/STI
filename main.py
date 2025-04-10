@@ -1,12 +1,14 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import os
+
+
 
 app = Flask(__name__)
 
@@ -52,6 +54,7 @@ class Usuario(db.Model):
     permissao = db.Column(db.String(50), nullable=False, default='user')
 
 class Solicitacao(db.Model):
+    __tablename__ = 'solicitacao'
     id = db.Column(db.Integer, primary_key=True)
     setor = db.Column(db.String(50))
     qra = db.Column(db.String(50))
@@ -237,24 +240,22 @@ def alterar_status(solicitacao_id):
     db.session.commit()
     return redirect(url_for('solicitacoes'))
 
-####@app.route('/solicitacao/<int:id>/atender', methods=["POST"])
-##def atender_solicitacao(id):
-    ## solicitacao = Solicitacao.query.get_or_404(id)
-    ##  solicitacao.horario_inicio = datetime.now(pytz.timezone('America/Sao_Paulo'))
-    ##  solicitacao.status = "Em andamento"
-    ##  solicitacao.atendente = session['usuario']  # armazenar quem atende
-    ##   db.session.commit()
 
-    # avisa ao solicitante original sobre quem atende a solicitação:
-    ##  socketio.emit('solicitacao_atendida', {
-    ##     'id': solicitacao.id,
-    ##      'atendente': solicitacao.atendente
-    ## }, broadcast=True)
+@app.route('/analise', methods=['GET'])
+def analise_solicitacoes():
+    periodo = request.args.get('periodo', 'diario')
 
-## return redirect('/admin/solicitacoes')
+    # Obtendo as solicitações do banco de dados de acordo com o período
+    if periodo == 'diario':
+        data_inicio = datetime.now() - timedelta(days=1)
+    elif periodo == 'semanal':
+        data_inicio = datetime.now() - timedelta(weeks=1)
+    else:
+        data_inicio = datetime.now() - timedelta(weeks=4)
 
+    solicitacoes_analise = Solicitao.query.filter(Solicitacao.datahora >= data_inicio).all()
 
-
+    return render_template('analise.html', solicitacoes_analise=solicitacoes_analise)
 @app.route("/cadastro", methods=["POST"])
 def cadastro():
     if not session.get('logged_in') or session['permissao'] != 'admin':
@@ -311,7 +312,51 @@ def alterar_permissao_usuario(usuario_id):
     return redirect(url_for("solicitacoes"))
 
 
+@app.route('/alterar_senha_usuario/<int:usuario_id>', methods=['POST'])
+def alterar_senha_usuario(usuario_id):
+    if not session.get('logged_in') or session['permissao'] != 'admin':
+        flash('Acesso negado!', 'danger')
+        return redirect(url_for('login'))
 
+    usuario = Usuario.query.get_or_404(usuario_id)
+    nova_senha = request.form.get('nova_senha')
+
+    if nova_senha:
+        senha_hash = generate_password_hash(nova_senha)  # Criptografa a senha
+        usuario.senha = senha_hash  # Atualiza a senha do usuário
+
+        try:
+            db.session.commit()  # Salva no banco de dados
+            flash('Senha alterada com sucesso!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Erro ao alterar a senha: {e}', 'danger')
+
+    return redirect(url_for('solicitacoes'))  # Redireciona de volta para a página de solicitações
+
+
+
+
+@app.route('/buscar_usuario', methods=['GET'])
+def buscar_usuario():
+    if not session.get('logged_in') or session['permissao'] != 'admin':
+        flash('Acesso negado!', 'danger')
+        return redirect(url_for('login'))
+
+    nome_usuario = request.args.get('usuario', '').strip()
+
+    # Verifique se o nome de usuário foi fornecido
+    if nome_usuario:
+        # Busca usuários no banco de dados que contêm o nome pesquisado
+        usuarios = Usuario.query.filter(Usuario.usuario.ilike(f'%{nome_usuario}%')).all()
+    else:
+        # Caso nenhum nome seja fornecido, mostra todos os usuários
+        usuarios = Usuario.query.all()
+
+    # Passa a lista de usuários encontrados para o template
+    # Passa o primeiro usuário encontrado como usuario_encontrado, se houver
+    usuario_encontrado = usuarios[0] if usuarios else None
+    return render_template('solicitacoes.html', usuarios=usuarios, usuario_encontrado=usuario_encontrado)
 
 
 

@@ -1,6 +1,0 @@
-Testando git
-
-vc consegue ver oq eu to fznd?
-
-Eu qria saber se n dá pra vc editar um arquivo enquanto eu edito outro. Será q dá?
-
