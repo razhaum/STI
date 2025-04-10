@@ -8,13 +8,19 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()  # Carrega as variáveis do .env, se estiver rodando localmente
+
+
 app = Flask(__name__)
 
 # Configurações básicas e sessão
 app.secret_key = os.urandom(24)  # Usando uma chave secreta gerada aleatoriamente
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydatabase.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get ('DATABASE_URL', 'sqlite:///mydatabase.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'sua-chave'
+# Secret Key fixa (recomendada para produção)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '7sX!vZp2#rKw9D6rA^gLg3T@FvUq1mWz')
 
 
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
