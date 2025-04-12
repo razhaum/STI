@@ -1,5 +1,5 @@
 from werkzeug.security import generate_password_hash
-from main import db, \
+from app import db, \
     Usuario  # Certifique-se de que você tenha o modelo 'Usuario' e a instância do db configurada corretamente
 
 # Lista de nomes dos usuários a serem adicionados
