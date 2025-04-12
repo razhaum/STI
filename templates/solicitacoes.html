@@ -143,6 +143,8 @@
         <div class="tab" onclick="openTab('usuarios', this)">Usuários</div>
         <div class="tab" onclick="openTab('chat', this)">Chat</div>
          <div class="tab" onclick="openTab('analise', this)">Análise de Solicitações</div> <!-- Nova Aba -->
+         <div class="tab" onclick="openTab('automacoes', this)">Automações</div> <!-- Nova Aba -->
+</div>
     </div>
 
     <!-- Solicitações -->
@@ -364,11 +366,6 @@
 </div>
 
 
-
-
-
-
-
     <!-- Chat -->
     <div class="content" id="chat">
         <div id="chat-container">
@@ -377,6 +374,16 @@
             <button id="chat-btn" onclick="enviarMensagem()">Enviar</button>
         </div>
     </div>
+
+
+    <div id="automacoes" class="tab-content" style="display: none;">
+    <h2>Projetos de Automação</h2>
+    <ul>
+        <li><button onclick="executarAutomacao('script1')">Rodar Automação 1</button></li>
+        <li><button onclick="executarAutomacao('script2')">Rodar Automação 2</button></li>
+        <!-- Adicione mais aqui -->
+    </ul>
+</div>
 
 
 
@@ -563,6 +570,16 @@ document.addEventListener("DOMContentLoaded", function () {
             carregarMensagens();
         }
     </script>
+<script>
+function executarAutomacao(nomeScript) {
+    fetch(`/executar_automacao/${nomeScript}`, {
+        method: 'POST',
+    })
+    .then(response => response.json())
+    .then(data => alert(`Resultado: ${data.status}`))
+    .catch(error => alert('Erro na automação: ' + error));
+}
+</script>
 
 
 </body>

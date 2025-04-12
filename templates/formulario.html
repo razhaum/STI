@@ -181,7 +181,26 @@
             cursor: pointer;
             z-index: 10000;
         }
+.voltar-button {
+    position: fixed;
+    top: 20px;
+    right: 20px; /* canto superior direito */
+    background: linear-gradient(90deg, #00aaff, #4ddcff);
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 9999;
+    transition: background 0.3s ease;
+}
 
+.voltar-button:hover {
+    background: linear-gradient(90deg, #4ddcff, #00aaff);
+}
         flash.alert-success {
     width: auto; /* ajusta ao tamanho do texto */
     display: inline-block; /* permite que a largura seja do tamanho do conteúdo */
@@ -212,6 +231,9 @@
     </style>
 </head>
 <body>
+<a href="{{ url_for('home_user') }}" class="voltar-button">⬅ Voltar para Início</a>
+
+    </div>
 
     <!-- Exibe mensagens flash imediatamente acima do formulário (Recomendado) -->
     {% with messages = get_flashed_messages(with_categories=true) %}

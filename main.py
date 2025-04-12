@@ -92,7 +92,13 @@ def criar_usuarios_iniciais():
         criar_usuarios_iniciais()  # Usuários iniciais garantidos agora!
 
 
-
+@app.route('/home_user')
+def home_user():
+    if session.get('logged_in') and session.get('permissao') == 'user':
+        return render_template('home_user.html', usuario=session['usuario'])
+    else:
+        flash('Acesso negado. Faça login como usuário.', 'warning')
+        return redirect(url_for('login'))
 # Rota inicial para login
 @app.route("/", methods=['GET', 'POST'])
 def login():
@@ -101,7 +107,7 @@ def login():
         if session['permissao'] == 'admin':
             return redirect(url_for('solicitacoes'))
         elif session['permissao'] == 'user':
-            return redirect(url_for('formulario'))
+            return redirect(url_for('home_user'))
         else:
             session.clear()
             flash('Permissão inválida!', 'danger')
@@ -128,7 +134,7 @@ def login():
             if session['permissao'] == 'admin':
                 return redirect(url_for('solicitacoes'))
             else:
-                return redirect(url_for('formulario'))  # Para outros usuários, vai para o formulário
+                return redirect(url_for('home_user'))  # Para outros usuários, vai para o formulário
 
         flash('Usuário ou senha incorretos!')
         return redirect(url_for('login'))
@@ -139,7 +145,10 @@ def login():
 @app.route('/styles.css')
 def serve_css():
     return send_from_directory('templates', 'styles.css')
-# Inicialização do aplicativo
+
+@app.route('/')
+def index():
+    return render_template('index.html')  # O arquivo HTML deve estar na pasta templates
 # Logout
 @app.route('/logout')
 def logout():
