@@ -138,6 +138,7 @@
 
     <!-- Abas -->
     <div class="tabs">
+        <div class="tab" onclick="openTab('nova_solicitacao', this)">Criar Solicitação</div>
         <div class="tab active" onclick="openTab('solicitacoes', this)">Solicitações</div>
         <div class="tab" onclick="openTab('cadastro', this)">Cadastro</div>
         <div class="tab" onclick="openTab('usuarios', this)">Usuários</div>
@@ -147,6 +148,33 @@
 </div>
     </div>
 
+    <div class="content" id="nova_solicitacao">
+    <h3>Criar Nova Solicitação</h3>
+    <form action="{{ url_for('criar_solicitacao') }}" method="POST" enctype="multipart/form-data">
+        <label for="setor">Setor</label>
+        <input type="text" id="setor" name="setor" required>
+
+        <label for="qra">QRA</label>
+        <input type="text" id="qra" name="qra" required>
+
+        <label for="solicitacao">Solicitação</label>
+        <textarea id="solicitacao" name="solicitacao" required></textarea>
+
+        <label for="prioridade">Prioridade</label>
+        <select id="prioridade" name="prioridade">
+            <option value="Baixa">Baixa</option>
+            <option value="Média">Média</option>
+            <option value="Alta">Alta</option>
+        </select>
+
+        <label for="imagem">Imagem (opcional)</label>
+        <input type="file" id="imagem" name="imagem">
+
+        <button type="submit">Enviar Solicitação</button>
+    </form>
+</div>
+
+
     <!-- Solicitações -->
     <div class="content active" id="solicitacoes">
         <h3>Solicitações Registradas</h3>
@@ -154,6 +182,7 @@
     <tr>
         <th>Setor</th>
         <th>QRA</th>
+        <th>Atendente</th> <!-- novo -->
         <th>Solicitação</th>
         <th>Prioridade</th>
         <th>Status</th>
@@ -167,6 +196,7 @@
     <tr>
         <td>{{ solicitacao.setor }}</td>
         <td>{{ solicitacao.qra }}</td>
+        <td>{{ solicitacao.atendente or 'Ainda não atendido' }}</td>
         <td>{{ solicitacao.solicitacao }}</td>
         <td>{{ solicitacao.prioridade }}</td>
         <td>{{ solicitacao.status }}</td>
@@ -204,6 +234,9 @@
 </td>
         <td>
             <a href="{{ url_for('alterar_status', solicitacao_id=solicitacao.id) }}" style="color:#00cc66">Alterar Status</a>
+            <a href="{{ url_for('excluir_solicitacao', solicitacao_id=solicitacao.id) }}" style="color:#ff3333"
+       onclick="return confirm('Tem certeza que deseja excluir esta solicitação?');">Excluir</a>
+
         </td>
     </tr>
     {% endfor %}
@@ -376,7 +409,7 @@
     </div>
 
 
-    <div id="automacoes" class="tab-content" style="display: none;">
+    <div id="automacoes" class="content" style="display: none;">
     <h2>Projetos de Automação</h2>
     <ul>
         <li><button onclick="executarAutomacao('script1')">Rodar Automação 1</button></li>
@@ -501,6 +534,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+
+
     // Gráfico 2: Atendimentos por responsável
     const ctx2 = document.getElementById('graficoAtendentes').getContext('2d');
     const atendentesChart = new Chart(ctx2, {
@@ -580,6 +615,31 @@ function executarAutomacao(nomeScript) {
     .catch(error => alert('Erro na automação: ' + error));
 }
 </script>
+
+<script>
+    function openTab(tabName, element) {
+        let i, contents, tabs;
+
+        contents = document.getElementsByClassName("content");
+        for (i = 0; i < contents.length; i++) {
+            contents[i].style.display = "none";
+            contents[i].classList.remove("active");
+        }
+
+        tabs = document.getElementsByClassName("tab");
+        for (i = 0; i < tabs.length; i++) {
+            tabs[i].classList.remove("active");
+        }
+
+        document.getElementById(tabName).style.display = "block";
+        document.getElementById(tabName).classList.add("active");
+        element.classList.add("active");
+    }
+
+    // Iniciar com a aba de Solicitações aberta:
+    document.getElementById('solicitacoes').style.display = "block";
+</script>
+
 
 
 </body>

@@ -66,7 +66,7 @@ class Solicitacao(db.Model):
     datahora = db.Column(db.DateTime, nullable=True)  # Nullable permite que o campo seja vazio
     horario_inicio = db.Column(db.DateTime)
     datahora_fim = db.Column(db.DateTime, nullable=True)
-
+    atendente = db.Column(db.String(100), nullable=True)
 
     # Função fora da classe para criar usuarios iniciais
     def __repr__(self):
@@ -128,6 +128,9 @@ def login():
             session['logged_in'] = True
             session['usuario'] = usuario_cadastrado.usuario
             session['permissao'] = usuario_cadastrado.permissao
+            session['qra_usuario'] = usuario_cadastrado.usuario
+
+
             flash(f'Bem-vindo, {session["usuario"]}!', 'success')
 
             # Redireciona de acordo com a permissão do usuário
@@ -148,7 +151,7 @@ def serve_css():
 
 @app.route('/')
 def index():
-    return render_template('index.html')  # O arquivo HTML deve estar na pasta templates
+    return render_template('index')  # O arquivo HTML deve estar na pasta templates
 # Logout
 @app.route('/logout')
 def logout():
@@ -230,24 +233,47 @@ def alterar_status(solicitacao_id):
         return redirect(url_for('login'))
 
     solicitacao = Solicitacao.query.get_or_404(solicitacao_id)
+    usuario_atual = session.get('qra_usuario')
+
+    print('QRA Atual:', usuario_atual)  # Teste rápido no terminal Flask
 
     agora_sp = datetime.now(fuso_sp)  # Pegamos aqui uma vez só, pra usar sempre igual
+
+
 
     if solicitacao.status == 'Pendente':
         solicitacao.status = 'Em andamento'
         solicitacao.horario_inicio = solicitacao.horario_inicio or datetime.now()  # Define horário de início se ainda não definido
-        solicitacao.datahora_fim = None  # Limpa o campo caso volte de concluído para pendente/em andamento
+        solicitacao.datahora_fim = None
+        solicitacao.atendente = usuario_atual
+        # Limpa o campo caso volte de concluído para pendente/em andamento
 
     elif solicitacao.status == 'Em andamento':
         solicitacao.status = 'Concluído'
-        solicitacao.datahora_fim = datetime.now(fuso_sp)  # Grava agora claramente a data/hora fim!
+        solicitacao.datahora_fim = datetime.now(fuso_sp)
+
+        # Grava agora claramente a data/hora fim!
 
     elif solicitacao.status == 'Concluído':
         solicitacao.status = 'Pendente'
-        solicitacao.datahora_fim = None  # Limpa novamente o campo finalizado
+        solicitacao.datahora_fim = None
+        solicitacao.atendente = None
+
+        # Limpa novamente o campo finalizado
 
     db.session.commit()
     return redirect(url_for('solicitacoes'))
+
+@app.route('/excluir_solicitacao/<int:solicitacao_id>')
+def excluir_solicitacao(solicitacao_id):
+    solicitacao = Solicitacao.query.get_or_404(solicitacao_id)
+
+    db.session.delete(solicitacao)
+    db.session.commit()
+
+    return redirect(
+        url_for('solicitacoes'))  # substitua corretamente pela função ou rota que lista as solicitações.
+
 
 
 @app.route('/analise', methods=['GET'])
@@ -344,6 +370,36 @@ def alterar_senha_usuario(usuario_id):
     return redirect(url_for('solicitacoes'))  # Redireciona de volta para a página de solicitações
 
 
+
+
+@app.route('/criar_solicitacao', methods=['POST'])
+def criar_solicitacao():
+    setor = request.form['setor']
+    qra = request.form['qra']
+    descricao_solicitacao = request.form['solicitacao']
+    prioridade = request.form['prioridade']
+
+    arquivo_imagem = request.files.get('imagem')
+    filename = None
+    if arquivo_imagem and arquivo_imagem.filename:
+        filename = secure_filename(arquivo_imagem.filename)
+        arquivo_imagem.save(os.path.join(UPLOAD_FOLDER, filename))
+
+    nova_solicitacao = Solicitacao(
+        setor=setor,
+        qra=qra,
+        solicitacao=descricao_solicitacao,
+        prioridade=prioridade,
+        status='Pendente',
+        imagem=filename,
+        datahora=datetime.now(),
+        horario_inicio=datetime.now()
+    )
+
+    db.session.add(nova_solicitacao)
+    db.session.commit()
+
+    return redirect(url_for('solicitacoes'))  # Ajuste o nome da rota conforme estiver definido
 
 
 @app.route('/buscar_usuario', methods=['GET'])

@@ -5,21 +5,23 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <meta charset="UTF-8">
   <title>Portal do Usuário - CETEL</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet">
 
   <style>
     html, body {
       overflow-x: hidden;
       margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-      color: #EDEDED;
+      font-family: 'Poppins', sans-serif;
+      background-image: url('https://i.imgur.com/HdTHHgm.jpeg');
+      background-size: cover;
+      background-position: center;
+      color: #ffffff;
       min-height: 100vh;
     }
 
     .header {
-      background-color: rgba(43, 43, 64, 0.85);
+      background-color: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(10px);
       padding: 20px;
       font-size: 24px;
@@ -27,11 +29,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
     }
 
     .logout {
-      background-color: #4F46E5;
+      background: linear-gradient(90deg, #00aaff, #4ddcff);
       color: white;
       padding: 10px 16px;
       border-radius: 8px;
@@ -41,41 +43,41 @@
     }
 
     .logout:hover {
-      background-color: #3730A3;
+      background: linear-gradient(90deg, #4ddcff, #00aaff);
     }
 
     .tab-menu {
       display: flex;
       justify-content: center;
-      background-color: #1E1E2F;
+      background-color: rgba(0, 0, 0, 0.7);
       padding: 20px;
       gap: 20px;
       flex-wrap: wrap;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
     }
 
     .tab-btn {
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       padding: 18px 30px;
       border-radius: 12px;
-      color: #fff;
+      color: #ffffff;
       font-size: 18px;
       cursor: pointer;
       font-weight: 500;
       transition: 0.3s;
-      box-shadow: 0 0 12px rgba(79, 70, 229, 0.3);
       text-decoration: none;
     }
 
     .tab-btn:hover,
     .tab-btn.active {
-      background-color: rgba(79, 70, 229, 0.3);
-      box-shadow: 0 0 20px rgba(129, 140, 248, 0.5);
+      background: linear-gradient(90deg, #00aaff, #4ddcff);
+      box-shadow: 0 0 20px rgba(0, 192, 255, 0.5);
     }
 
-    /* Slider Styles */
-  .slider-wrapper {
+    .slider-wrapper {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -84,18 +86,18 @@
       width: 100%;
     }
 
-     .slide-container {
+    .slide-container {
       width: 100%;
       height: 100vh;
-      background-size: contain; /* A imagem se ajusta ao tamanho do slide */
+      background-size: contain;
       background-position: center;
       background-repeat: no-repeat;
       border-radius: 0;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
       position: absolute;
       top: 0;
       left: 0;
-      transition: background-image 20.8s ease-in-out;
+      transition: background-image 7s ease-in-out;
     }
 
     .slide-text {
@@ -103,9 +105,10 @@
       bottom: 0;
       width: 100%;
       text-align: center;
-      background: rgba(0,0,0,0.5);
-      padding: 15px;
-      font-size: 18px;   /* O texto ficou menor para se ajustar melhor */
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 0 0 8px 8px;
+      font-size: 16px;
     }
 
     .nav-buttons {
@@ -116,32 +119,20 @@
     }
 
     .nav-buttons button {
-      background-color: #4F46E5;
+      background: linear-gradient(90deg, #00aaff, #4ddcff);
       color: white;
       padding: 10px 20px;
       border: none;
       border-radius: 8px;
       font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
+      transition: background 20.3s;
     }
 
     .nav-buttons button:hover {
-      background-color: #3730A3;
+      background: linear-gradient(90deg, #4ddcff, #00aaff);
     }
-
-    .pause-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background-color: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-
   </style>
 </head>
 
@@ -159,26 +150,22 @@
 
   <!-- Slide Container -->
   <div class="slider-wrapper">
-    <div class="slide-container" id="slider" style="background-image: url('/static/uploads/imagens1.jpg.jpg');">
-      <div class="slide-text">Slide 1</div>
+    <div class="slide-container" id="slider" style="background-image: url('/static/uploads/imagens1.jpg');">
+
     </div>
   </div>
 
-  <!-- Botões de navegação -->
+  <!-- Navigation Buttons -->
   <div class="nav-buttons">
     <button onclick="prevSlide()">&#10094; Anterior</button>
     <button onclick="nextSlide()">Próximo &#10095;</button>
   </div>
 
-  <button class="pause-btn" onclick="toggleAutoSlide()">
-    Pausar
-  </button>
-
   <script>
     const images = [
-      { url: '/static/uploads/imagens1.jpg', text: 'Slide 1' },
-      { url: '/static/uploads/imagens2.jpg', text: 'Slide 2' },
-      { url: '/static/uploads/imagens3.jpg', text: 'Slide 3' }
+      { url: '/static/uploads/imagens1.jpg',  },
+      { url: '/static/uploads/imagens2.jpg',  },
+      { url: '/static/uploads/imagens3.jpg',  },
     ];
 
     let current = 0;
@@ -204,22 +191,10 @@
     setInterval(nextSlide, 5000);
 
     function openTab(tabId, el) {
-      const buttons = document.querySelectorAll(".tab-btn");
-      buttons.forEach(b => b.classList.remove("active"));
-      el.classList.add("active");
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
     }
-
-    // Alterna o modo de slide automático (pausar ou reiniciar)
-    function toggleAutoSlide() {
-      if (isAutoSliding) {
-        stopAutoSlide();
-      } else {
-        startAutoSlide();
-      }
-    }
-
-    // Começar o slide automático
-    startAutoSlide();
   </script>
 
 </body>
