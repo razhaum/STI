@@ -1,35 +1,32 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
   <script src="https://cdn.tailwindcss.com"></script>
   <meta charset="UTF-8">
   <title>Portal do Usuário - CETEL</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
-  <style>
+   <style>
     html, body {
-      overflow-x: hidden;
       margin: 0;
       font-family: 'Poppins', sans-serif;
-      background-image: url('https://i.imgur.com/HdTHHgm.jpeg');
-      background-size: cover;
-      background-position: center;
+      background-color: #0a0a0a;
       color: #ffffff;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
     .header {
-      background-color: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(10px);
+      background-color: #111827;
       padding: 20px;
       font-size: 24px;
       font-weight: 600;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     }
 
     .logout {
@@ -49,32 +46,31 @@
     .tab-menu {
       display: flex;
       justify-content: center;
-      background-color: rgba(0, 0, 0, 0.7);
+      background-color: #1f2937;
       padding: 20px;
       gap: 20px;
       flex-wrap: wrap;
       border-radius: 12px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
     }
 
     .tab-btn {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background-color: #111827;
       padding: 18px 30px;
-      border-radius: 12px;
+      border-radius: 10px;
       color: #ffffff;
-      font-size: 18px;
-      cursor: pointer;
+      font-size: 16px;
       font-weight: 500;
-      transition: 0.3s;
-      text-decoration: none;
+      border: 1px solid #374151;
+      transition: 0.3s ease-in-out;
+      text-align: center;
+      cursor: pointer;
     }
 
     .tab-btn:hover,
     .tab-btn.active {
       background: linear-gradient(90deg, #00aaff, #4ddcff);
-      box-shadow: 0 0 20px rgba(0, 192, 255, 0.5);
+      color: black;
+      box-shadow: 0 0 15px rgba(0, 192, 255, 0.4);
     }
 
     .slider-wrapper {
@@ -92,30 +88,21 @@
       background-size: contain;
       background-position: center;
       background-repeat: no-repeat;
-      border-radius: 0;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
       position: absolute;
       top: 0;
       left: 0;
-      transition: background-image 7s ease-in-out;
-    }
-
-    .slide-text {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      text-align: center;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 10px;
-      border-radius: 0 0 8px 8px;
-      font-size: 16px;
+      transition: background-image 0.8s ease-in-out;
+      padding: 30px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      background-color: #0f172a;
     }
 
     .nav-buttons {
       display: flex;
       justify-content: center;
       gap: 20px;
-      margin-top: 20px;
+      margin: 20px 0;
     }
 
     .nav-buttons button {
@@ -127,7 +114,7 @@
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      transition: background 20.3s;
+      transition: background 0.3s;
     }
 
     .nav-buttons button:hover {
@@ -135,7 +122,6 @@
     }
   </style>
 </head>
-
 <body>
 
   <div class="header">
@@ -144,37 +130,40 @@
   </div>
 
   <div class="tab-menu">
-    <div class="tab-btn active" onclick="openTab('cetel', this)">🏢 Organização CETEL</div>
+    <div class="tab-btn active" onclick="mostrarCETEL(this)">🏢 Organização CETEL</div>
     <a class="tab-btn" href="/formulario">📝 Suporte (STI)</a>
+    <div class="tab-btn" onclick="mostrarRadio(this)">🎙️ Rádio</div>
+    <div class="tab-btn" onclick="mostrarMonitoramento(this)">📡 Monitoramento</div>
   </div>
 
   <!-- Slide Container -->
   <div class="slider-wrapper">
-    <div class="slide-container" id="slider" style="background-image: url('/static/uploads/imagens1.jpg');">
-
+    <div class="slide-container" id="slider">
+      <!-- Conteúdo dinâmico será inserido aqui -->
     </div>
   </div>
 
   <!-- Navigation Buttons -->
-  <div class="nav-buttons">
+  <div class="nav-buttons" id="nav-buttons">
     <button onclick="prevSlide()">&#10094; Anterior</button>
     <button onclick="nextSlide()">Próximo &#10095;</button>
   </div>
 
   <script>
     const images = [
-      { url: '/static/uploads/imagens1.jpg',  },
-      { url: '/static/uploads/imagens2.jpg',  },
-      { url: '/static/uploads/imagens3.jpg',  },
+      { url: '/static/uploads/imagens1.jpg' },
+      { url: '/static/uploads/imagens2.jpg' },
+      { url: '/static/uploads/imagens3.jpg' }
     ];
 
     let current = 0;
     const slider = document.getElementById('slider');
+    const navButtons = document.getElementById('nav-buttons');
 
     function showSlide(index) {
       const slide = images[index];
       slider.style.backgroundImage = `url('${slide.url}')`;
-      slider.querySelector('.slide-text').textContent = slide.text;
+      slider.innerHTML = "";
     }
 
     function nextSlide() {
@@ -187,14 +176,73 @@
       showSlide(current);
     }
 
-    // Auto slide
-    setInterval(nextSlide, 5000);
-
-    function openTab(tabId, el) {
+    function openTab(el) {
       const buttons = document.querySelectorAll('.tab-btn');
       buttons.forEach(b => b.classList.remove('active'));
       el.classList.add('active');
     }
+
+    function mostrarCETEL(el) {
+      openTab(el);
+      navButtons.style.display = 'flex';
+      showSlide(current);
+    }
+
+    function mostrarRadio(el) {
+      openTab(el);
+      navButtons.style.display = 'none';
+      slider.style.backgroundImage = 'none';
+      slider.innerHTML = `
+        <h2 style="font-size: 24px; margin-bottom: 20px; color: #00d9ff;">🔗 Acessos Rápidos da Rádio CETEL</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+          <a href="https://smartsampa.sentinelx.com.br/dispatch/occurrences?page=1" target="_blank" class="tab-btn" style="background: #00aaff;">
+            <i class="uil uil-bolt-alt" style="font-size: 28px;"></i><br>Ocorrências ao Vivo
+          </a>
+          <a href="https://smartsampa.sentinelx.com.br/dispatch/units?page=1" target="_blank" class="tab-btn" style="background: #00aaff;">
+            <i class="uil uil-car-sideview" style="font-size: 28px;"></i><br>Unidades em Serviço
+          </a>
+          <a href="https://smartsampa.sentinelx.com.br/gcm-agent/occurrences" target="_blank" class="tab-btn" style="background: #00aaff;">
+            <i class="uil uil-shield-check" style="font-size: 28px;"></i><br>Ocorrências GCM
+          </a>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLScoiq6r5olqVY36n_HiRhDZeMqY9HOL0Ncowzg8OrpupeuzYA/viewform" target="_blank" class="tab-btn" style="background: #00aaff;">
+            <i class="uil uil-clipboard-alt" style="font-size: 28px;"></i><br>Formulário de Registro
+          </a>
+        </div>
+      `;
+    }
+
+    // Iniciar com CETEL
+    mostrarCETEL(document.querySelector('.tab-btn.active'));
+    setInterval(() => {
+      if (navButtons.style.display !== 'none') nextSlide();
+    }, 5000);
+
+
+    function mostrarMonitoramento(el) {
+  openTab(el);
+  navButtons.style.display = 'none';
+  slider.style.backgroundImage = 'none';
+  slider.innerHTML = `
+    <h2 style="font-size: 24px; margin-bottom: 20px; color: #00d9ff;">🛰️ Acessos Rápidos de Monitoramento</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+      <a href="https://smartsampa.sentinelx.com.br/cameras/cameras?page=1" target="_blank" class="tab-btn" style="background: #00aaff;">
+        <i class="uil uil-video" style="font-size: 28px;"></i><br>Câmeras SmartSampa
+      </a>
+      <a href="https://www.google.com/maps/d/u/0/viewer?hl=pt-BR&mid=1SGSk-9LOxlDcrW1dwxd6VvAI6m06kts&ll=-23.5531548237342,-46.631921502664184&z=12" target="_blank" class="tab-btn" style="background: #00aaff;">
+        <i class="uil uil-map" style="font-size: 28px;"></i><br>Mapa de Ocorrências
+      </a>
+      <a href="https://portalbnmp.cnj.jus.br/#/captcha/" target="_blank" class="tab-btn" style="background: #00aaff;">
+        <i class="uil uil-user-search" style="font-size: 28px;"></i><br>Consultar Procurado (BNMP)
+      </a>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfUhnbs1AGtihvsmyHEzyk6D2rgXZhgVmPMiHML8JcDA3oBHg/viewform" target="_blank" class="tab-btn" style="background: #00aaff;">
+        <i class="uil uil-clipboard-notes" style="font-size: 28px;"></i><br>Formulário de Monitoramento
+      </a>
+      <a href="https://smartsampa.sentinelx.com.br/events/events?beginIn=1744783020219" target="_blank" class="tab-btn" style="background: #00aaff;">
+        <i class="uil uil-clock-nine" style="font-size: 28px;"></i><br>Eventos em Tempo Real
+      </a>
+    </div>
+  `;
+}
   </script>
 
 </body>

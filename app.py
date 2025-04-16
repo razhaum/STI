@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
+from flask import Flask, render_template, render_template_string, request, redirect, url_for, session, flash, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime, timedelta
@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import os
+import sqlite3
 
 
 
@@ -241,6 +242,7 @@ def alterar_status(solicitacao_id):
 
 
 
+
     if solicitacao.status == 'Pendente':
         solicitacao.status = 'Em andamento'
         solicitacao.horario_inicio = solicitacao.horario_inicio or datetime.now()  # Define horário de início se ainda não definido
@@ -276,21 +278,6 @@ def excluir_solicitacao(solicitacao_id):
 
 
 
-@app.route('/analise', methods=['GET'])
-def analise_solicitacoes():
-    periodo = request.args.get('periodo', 'diario')
-
-    # Obtendo as solicitações do banco de dados de acordo com o período
-    if periodo == 'diario':
-        data_inicio = datetime.now() - timedelta(days=1)
-    elif periodo == 'semanal':
-        data_inicio = datetime.now() - timedelta(weeks=1)
-    else:
-        data_inicio = datetime.now() - timedelta(weeks=4)
-
-    solicitacoes_analise = Solicitao.query.filter(Solicitacao.datahora >= data_inicio).all()
-
-    return render_template('analise.html', solicitacoes_analise=solicitacoes_analise)
 @app.route("/cadastro", methods=["POST"])
 def cadastro():
     if not session.get('logged_in') or session['permissao'] != 'admin':
@@ -512,8 +499,14 @@ def enviar_solicitacao():
 
     return redirect(url_for('solicitacoes'))
 
+@app.route('/')
+def home():
+    return render_template('home_user.html')
 
-# Rota para excluir um usuário
+@app.route('/radio')
+def radio():
+    return render_template('radio.html')
+
 @app.route('/excluir_usuario/<int:id_usuario>', methods=['POST'])
 def excluir_usuario(id_usuario):
     if not session.get('logged_in') or session.get('usuario') != 'admin':

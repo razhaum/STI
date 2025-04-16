@@ -140,10 +140,11 @@
     <div class="tabs">
         <div class="tab" onclick="openTab('nova_solicitacao', this)">Criar Solicitação</div>
         <div class="tab active" onclick="openTab('solicitacoes', this)">Solicitações</div>
+         <div class="tab" onclick="openTab('analise', this)">Análise de Solicitações</div> <!-- Nova Aba -->
         <div class="tab" onclick="openTab('cadastro', this)">Cadastro</div>
         <div class="tab" onclick="openTab('usuarios', this)">Usuários</div>
         <div class="tab" onclick="openTab('chat', this)">Chat</div>
-         <div class="tab" onclick="openTab('analise', this)">Análise de Solicitações</div> <!-- Nova Aba -->
+
          <div class="tab" onclick="openTab('automacoes', this)">Automações</div> <!-- Nova Aba -->
 </div>
     </div>
@@ -248,59 +249,64 @@
     <h3>Panorama de Solicitações</h3>
 
     <!-- Filtros para escolher o período (diário, semanal, mensal) -->
-    <form method="GET" action="{{ url_for('analise_solicitacoes') }}">
-        <select name="periodo" id="periodo">
-            <option value="diario">Diário</option>
-            <option value="semanal">Semanal</option>
-            <option value="mensal">Mensal</option>
-        </select>
-        <button type="submit">Filtrar</button>
-    </form>
-
-        <!-- Tipo de Gráfico: só aparecerá na aba de Panorama de Solicitações -->
-    <label for="tipoGrafico">Tipo de Gráfico:</label>
-    <select id="tipoGrafico" onchange="mudarTipoGrafico()">
-        <option value="bar">Barras</option>
-        <option value="line">Linha</option>
-        <option value="pie">Pizza</option>
-        <option value="doughnut">Rosquinha</option>
-        <option value="radar">Radar</option>
+      <form method="GET" action="{{ url_for('solicitacoes') }}" style="margin-bottom: 20px;">
+    <label for="periodo">Período:</label>
+    <select name="periodo" id="periodo">
+      <option value="diario">Diário</option>
+      <option value="semanal">Semanal</option>
+      <option value="mensal">Mensal</option>
     </select>
+    <button type="submit">Filtrar</button>
+  </form>
 
-    <!-- Gráfico de Solicitações -->
-    <canvas id="solicitacoesGrafico" width="400" height="200"></canvas>
-        <h4>Atendimentos por Responsável</h4>
-<div id="grafico-atendentes-container">
-    <canvas id="graficoAtendentes" width="300" height="200"></canvas>
+  <!-- Tipo de gráfico -->
+  <label for="tipoGrafico">Tipo de Gráfico:</label>
+  <select id="tipoGrafico" onchange="mudarTipoGrafico()">
+    <option value="bar">Barras</option>
+    <option value="line">Linha</option>
+    <option value="pie">Pizza</option>
+    <option value="doughnut">Rosquinha</option>
+    <option value="radar">Radar</option>
+  </select>
+
+  <!-- Gráfico Principal -->
+  <canvas id="solicitacoesGrafico" style="max-width: 100%; height: 300px; margin-top: 20px;"></canvas>
+
+  <h4 style="margin-top: 40px;">👥 Atendimentos por Responsável</h4>
+  <canvas id="graficoAtendentes" style="max-width: 100%; height: 250px;"></canvas>
+
+  <!-- Tabela -->
+  <h4 style="margin-top: 40px;">📋 Detalhamento das Solicitações</h4>
+  <table style="width: 100%; border-collapse: collapse;">
+    <thead>
+      <tr style="background-color: #1f2937; color: #fff;">
+        <th>Setor</th>
+        <th>Prioridade</th>
+        <th>Status</th>
+        <th>Data/Início</th>
+        <th>Data/Término</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for solicitacao in solicitacoes_analise %}
+      <tr>
+        <td>{{ solicitacao.setor }}</td>
+        <td>{{ solicitacao.prioridade }}</td>
+        <td>{{ solicitacao.status }}</td>
+        <td>{{ solicitacao.datahora.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+        <td>
+          {% if solicitacao.datahora_fim %}
+            {{ solicitacao.datahora_fim.strftime('%d/%m/%Y %H:%M:%S') }}
+          {% else %}
+            Não finalizado
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
-    <!-- Tabela de Solicitações -->
-    <h4>Detalhamento das Solicitações</h4>
-    <table>
-        <tr>
-            <th>Setor</th>
-            <th>Prioridade</th>
-            <th>Status</th>
-            <th>Data/Início</th>
-            <th>Data/Término</th>
-        </tr>
-        {% for solicitacao in solicitacoes_analise %}
-        <tr>
-            <td>{{ solicitacao.setor }}</td>
-            <td>{{ solicitacao.prioridade }}</td>
-            <td>{{ solicitacao.status }}</td>
-            <td>{{ solicitacao.datahora.strftime('%d/%m/%Y %H:%M:%S') }}</td>
-            <td>
-                {% if solicitacao.datahora_fim %}
-                    {{ solicitacao.datahora_fim.strftime('%d/%m/%Y %H:%M:%S') }}
-                {% else %}
-                    Não finalizado
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-        </div>
 
     <!-- Cadastro -->
     <div class="content" id="cadastro">
@@ -429,136 +435,85 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    let tipoAtual = 'bar'; // tipo padrão
-    let chartInstance = null;
+  let tipoAtual = 'bar';
+  let chartSolicitacoes = null;
 
+  const dadosGraficoSolicitacoes = {
+    labels: ['Hoje', 'Esta Semana', 'Este Mês'],
+    datasets: [{
+      label: 'Solicitações Registradas',
+      data: [12, 19, 5], // Substitua com dados do backend
+      backgroundColor: ['#3498db', '#2ecc71', '#f1c40f'],
+      borderColor: ['#2980b9', '#27ae60', '#f39c12'],
+      borderWidth: 2,
+      borderRadius: 10
+    }]
+  };
 
-    const dadosGrafico = {
-        labels: ['Hoje', 'Esta Semana', 'Este Mês'],
-        datasets: [{
-            label: 'Solicitações Registradas',
-            data: [12, 19, 5], // substitua com dados reais
-            backgroundColor: [
-                'rgba(0, 123, 255, 0.6)',
-                'rgba(40, 167, 69, 0.6)',
-                'rgba(255, 193, 7, 0.6)'
-            ],
-            borderColor: [
-                'rgba(0, 123, 255, 1)',
-                'rgba(40, 167, 69, 1)',
-                'rgba(255, 193, 7, 1)'
-            ],
-            borderWidth: 2,
-            borderRadius: 10,
-        }]
-    };
+  function renderizarGraficoSolicitacoes(tipo) {
+    const ctx = document.getElementById('solicitacoesGrafico').getContext('2d');
+    if (chartSolicitacoes) chartSolicitacoes.destroy();
 
-    function renderizarGrafico(tipo) {
-        const ctx = document.getElementById('solicitacoesGrafico').getContext('2d');
-        if (chartInstance) chartInstance.destroy(); // remove o antigo
+    chartSolicitacoes = new Chart(ctx, {
+      type: tipo,
+      data: dadosGraficoSolicitacoes,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { color: '#fff' } },
+          title: {
+            display: true,
+            text: 'Solicitações por Período',
+            color: '#fff'
 
-        chartInstance = new Chart(ctx, {
-            type: tipo,
-            data: dadosGrafico,
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            color: '#fff'
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Solicitações por Período',
-                        color: '#fff'
-                    }
-                },
-                scales: tipo === 'bar' || tipo === 'line' ? {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: '#fff' },
-                        title: {
-                            display: true,
-                            text: 'Quantidade',
-                            color: '#fff'
-                        }
-                    },
-                    x: {
-                        ticks: { color: '#fff' },
-                        title: {
-                            display: true,
-                            text: 'Período',
-                            color: '#fff'
-                        }
-                    }
-                } : {}
-            }
-        });
-    }
-
-    function mudarTipoGrafico() {
-        tipoAtual = document.getElementById("tipoGrafico").value;
-        renderizarGrafico(tipoAtual);
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        renderizarGrafico(tipoAtual);
-    });
-</script>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    // Gráfico 1: Solicitações (já existente)
-    const ctx1 = document.getElementById('solicitacoesGrafico').getContext('2d');
-    const solicitacoesChart = new Chart(ctx1, {
-        type: 'bar',
-        data: {
-            labels: ['Hoje', 'Esta Semana', 'Este Mês'],
-            datasets: [{
-                label: 'Solicitações Registradas',
-                data: [12, 19, 5], // <- substitua com dados reais
-                backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
+          }
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
+        scales: (tipo === 'bar' || tipo === 'line') ? {
+          y: { beginAtZero: true, ticks: { color: '#fff' } },
+          x: { ticks: { color: '#fff' } }
+        } : {}
+      }
     });
+  }
 
+  function mudarTipoGrafico() {
+    tipoAtual = document.getElementById('tipoGrafico').value;
+    renderizarGraficoSolicitacoes(tipoAtual);
+  }
 
+  document.addEventListener("DOMContentLoaded", function () {
+    renderizarGraficoSolicitacoes(tipoAtual);
 
-    // Gráfico 2: Atendimentos por responsável
+    // Gráfico de atendimentos por responsável
     const ctx2 = document.getElementById('graficoAtendentes').getContext('2d');
-    const atendentesChart = new Chart(ctx2, {
-        type: 'bar',
-        data: {
-            labels: ['Fabiana', 'Dantas', 'Higino'], // nomes dos atendentes
-            datasets: [{
-                label: 'Atendimentos Realizados',
-                data: [10, 7, 5], // <- você deve puxar esses dados do backend
-                backgroundColor: ['#e74c3c', '#2ecc71', '#9b59b6'],
-                borderColor: '#222',
-                borderWidth: 1
-            }]
+    new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: ['Fabiana', 'Dantas', 'Higino'],
+        datasets: [{
+          label: 'Atendimentos Realizados',
+          data: [10, 7, 5], // Substitua com dados reais do back
+          backgroundColor: ['#e74c3c', '#8e44ad', '#16a085'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { color: '#fff' } },
+          title: {
+            display: true,
+            text: 'Ranking de Atendentes',
+            color: '#fff'
+          }
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true }
-            }
+        scales: {
+          y: { beginAtZero: true, ticks: { color: '#fff' } },
+          x: { ticks: { color: '#fff' } }
         }
+      }
     });
-});
+  });
 </script>
 
 
